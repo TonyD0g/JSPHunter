@@ -10,8 +10,8 @@ public class Main {
     public static void main(String[] args) {
 
         Logo.PrintLogo();
-        logger.info("start xxx application");
-        logger.info("please wait 30 second...");
+        logger.info("start JSPHunter application");
+        logger.info("please wait 5 second...");
 
         // 运行主逻辑
         Application.start(args);

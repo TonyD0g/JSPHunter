@@ -10,6 +10,13 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="MavenImportPreferences">
     <option name="importingSettings">
       <MavenImportingSettings>
@@ -22,14 +29,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "D:/Coding/JSPHunter"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Jarvis/Desktop/2.class&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;
   }
-}]]></component>
-  <component name="RunManager">
+}</component>
+  <component name="RunManager" selected="应用程序.fileTest">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
       <module name="SafeTools-Boot" />
@@ -37,8 +47,16 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="fileTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.sec.utils.test.fileTest" />
+      <module name="SafeTools-Boot" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="应用程序.fileTest" />
         <item itemvalue="应用程序.Main" />
       </list>
     </recent_temporary>
@@ -53,6 +71,18 @@
       <updated>1679668114880</updated>
       <workItem from="1679668116031" duration="4000" />
       <workItem from="1679668213356" duration="70000" />
+      <workItem from="1679668365263" duration="23000" />
+      <workItem from="1679670131640" duration="1805000" />
+      <workItem from="1679672052707" duration="1634000" />
+      <workItem from="1679712689789" duration="4386000" />
+      <workItem from="1679719670157" duration="2060000" />
+      <workItem from="1679920589722" duration="815000" />
+      <workItem from="1679963813635" duration="3312000" />
+      <workItem from="1679971275856" duration="3372000" />
+      <workItem from="1679989366110" duration="46000" />
+      <workItem from="1679990439095" duration="524000" />
+      <workItem from="1679994346022" duration="44000" />
+      <workItem from="1680014814643" duration="572000" />
     </task>
     <servers />
   </component>

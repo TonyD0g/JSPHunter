@@ -1,7 +1,6 @@
 package org.sec.utils;
 
 import org.apache.log4j.Logger;
-import org.sec.http.ConnectAbstract;
 
 import java.util.Scanner;
 

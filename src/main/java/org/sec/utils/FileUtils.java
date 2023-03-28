@@ -5,9 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.sec.start.Application;
 
 /**
  * 文件操作
@@ -30,6 +30,22 @@ public class FileUtils {
     public static String getFilePath(Class<?> clazz, String className) {
         String path = clazz.getResource("/").getPath();
         return String.format("%s%s.class", path, className.replace('.', File.separatorChar));
+    }
+
+    public static void getAnyFilePath(String path, ArrayList<String> filePathArray) {
+        ArrayList<String> filePathList = new ArrayList();
+        readDir(path, filePathList);
+        String suffix;
+        for (String filePath : filePathList) {
+            suffix = readSuffix(filePath);
+
+            switch (suffix) {
+                case "jar":
+                case "jsp":
+                case "jspx":
+                    filePathArray.add(filePath);
+            }
+        }
     }
 
     /**
@@ -60,7 +76,9 @@ public class FileUtils {
         throw new RuntimeException("[Waring] [org.sec.utils.FileUtils] Can not read file: " + filepath);
     }
 
-    /** 读文件*/
+    /**
+     * 读文件
+     */
     public static FileReader readForName(String name) throws Exception {
         FileReader fileName = null;
         try {
@@ -71,44 +89,11 @@ public class FileUtils {
         return fileName;
     }
 
-    /**读文件*/
+    /**
+     * 读文件
+     */
     public static List<String> readLines(String filepath) {
         return readLines(filepath, "UTF8");
-    }
-
-
-    /** 随机读取某一行 */
-    public static String  randomReadLine(int maxLine,FileReader fileName) throws Exception {
-        int wantLine = (int) (Math.random() * maxLine + 1), line = 1;
-        BufferedReader in = new BufferedReader(fileName);
-        String str;
-        while ((str = in.readLine()) != null) {
-            if (wantLine == line) {
-                return str;
-            }
-            line++;
-        }
-
-        return null;
-    }
-
-    /**
-     * 写入Bytes
-     */
-    public static void writeBytes(String filepath, byte[] bytes) {
-        File file = new File(filepath);
-        File dirFile = file.getParentFile();
-        mkdirs(dirFile);
-
-        try (OutputStream out = new FileOutputStream(filepath);
-             BufferedOutputStream buff = new BufferedOutputStream(out)) {
-            buff.write(bytes);
-            buff.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (DEBUG) logger.info("file://" + filepath);
     }
 
     /**
@@ -148,22 +133,67 @@ public class FileUtils {
         return null;
     }
 
-    /**
-     * 输入str,尝试获取其在文件中的行数
-     */
-    public static int useStrToGetLineNum(BufferedReader reader,String wantStr) throws Exception {
 
+    /**
+     * 随机读取某一行
+     */
+    public static String randomReadLine(int maxLine, FileReader fileName) throws Exception {
+        int wantLine = (int) (Math.random() * maxLine + 1), line = 1;
+        BufferedReader in = new BufferedReader(fileName);
         String str;
-        int lineNum = 0;
-        while ((str = reader.readLine()) != null) {
-            lineNum++;
-            if (str.equals(wantStr)) {
-                String outcome = String.format("[+] has found that the \"%s\" in the file's lineNum: %d", str, lineNum);
-                logger.info(outcome);
-                break;
+        while ((str = in.readLine()) != null) {
+            if (wantLine == line) {
+                return str;
+            }
+            line++;
+        }
+
+        return null;
+    }
+
+    /**
+     * 读文件流
+     */
+    public static byte[] readStream(final InputStream in, final boolean close) {
+        if (in == null) {
+            throw new IllegalArgumentException("[Waring] [org.sec.utils.FileUtils] inputStream is null!!!");
+        }
+
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            IOUtils.copy(in, out);
+            return out.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (close) {
+                IOUtils.closeQuietly(in);
             }
         }
-        return lineNum;
+        return null;
+    }
+
+    public static String readSuffix(String fileName) {
+        return fileName.split("\\.")[fileName.split("\\.").length - 1];
+    }
+
+    /**
+     * 写入Bytes
+     */
+    public static void writeBytes(String filepath, byte[] bytes) {
+        File file = new File(filepath);
+        File dirFile = file.getParentFile();
+        mkdir(dirFile);
+
+        try (OutputStream out = new FileOutputStream(filepath);
+             BufferedOutputStream buff = new BufferedOutputStream(out)) {
+            buff.write(bytes);
+            buff.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (DEBUG) logger.info("file://" + filepath);
     }
 
     /**
@@ -174,7 +204,7 @@ public class FileUtils {
 
         File file = new File(filepath);
         File dirFile = file.getParentFile();
-        mkdirs(dirFile);
+        mkdir(dirFile);
 
         OutputStream out = null;
         Writer writer = null;
@@ -198,10 +228,40 @@ public class FileUtils {
         }
     }
 
+
+    /**
+     * 输入str,尝试获取其在文件中的行数
+     */
+    public static int useStrToGetLineNum(BufferedReader reader, String wantStr) throws Exception {
+
+        String str;
+        int lineNum = 0;
+        while ((str = reader.readLine()) != null) {
+            lineNum++;
+            if (str.equals(wantStr)) {
+                String outcome = String.format("[+] has found that the \"%s\" in the file's lineNum: %d", str, lineNum);
+                logger.info(outcome);
+                break;
+            }
+        }
+        return lineNum;
+    }
+
+    /**
+     * 刷新目录
+     */
+    public static void flushDir(String wantFlushDir) {
+        File file = new File(wantFlushDir);
+        if (file.exists()) {
+            delete(file);
+        }
+        file.mkdir();
+    }
+
     /**
      * 创建目录
      */
-    public static void mkdirs(File dirFile) {
+    public static void mkdir(File dirFile) {
         boolean file_exists = dirFile.exists();
 
         if (file_exists && dirFile.isDirectory()) {
@@ -214,8 +274,46 @@ public class FileUtils {
 
         if (!file_exists) {
             boolean flag = dirFile.mkdirs();
-            assert !DEBUG || flag : "[Waring] [org.sec.utils.FileUtils] Create Directory Failed: " + dirFile.getAbsolutePath();
+            assert !DEBUG || flag : "[+] [org.sec.utils.FileUtils] Create Directory Failed: " + dirFile.getAbsolutePath();
         }
+    }
+
+    /**
+     * 读取dir下的所有文件,返回绝对路径列表
+     */
+    public static ArrayList<String> readDir(String pathName, ArrayList<String> fileNameList) {
+        File folder = new File(pathName);
+        if (!folder.isDirectory()) {
+            fileNameList.add(folder.getAbsolutePath());
+            return null;
+        }
+        File[] files = folder.listFiles();
+        assert files != null;
+        for (File a : files) {
+            if (a.isDirectory()) {
+                readDir(a.getAbsolutePath(), fileNameList);
+            } else {
+                fileNameList.add(a.getAbsolutePath());
+            }
+        }
+
+        return fileNameList;
+    }
+
+    /**
+     * 读取 WebDir
+     */
+    public static Set<String> readWebDir(String webDir, Set<String> webDirSet) {
+        ArrayList<String> allFileName = new ArrayList<String>();
+        readDir(webDir, allFileName);
+        for (String filename : allFileName) {
+            String tag = File.separator + "WEB-INF" + File.separator;
+            int point = filename.indexOf(tag);
+            if (point > -1) {
+                webDirSet.add(filename.substring(0, point));
+            }
+        }
+        return webDirSet;
     }
 
     /**
@@ -253,7 +351,7 @@ public class FileUtils {
 
         if (file.isDirectory()) {
             File[] files = file.listFiles();
-            if (files != null && files.length > 0) {
+            if (files != null) {
                 for (File f : files) {
                     delete(f);
                 }
@@ -264,27 +362,6 @@ public class FileUtils {
         }
     }
 
-    /**
-     * 读文件流
-     */
-    public static byte[] readStream(final InputStream in, final boolean close) {
-        if (in == null) {
-            throw new IllegalArgumentException("[Waring] [org.sec.utils.FileUtils] inputStream is null!!!");
-        }
-
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            IOUtils.copy(in, out);
-            return out.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (close) {
-                IOUtils.closeQuietly(in);
-            }
-        }
-        return null;
-    }
 
     /**
      * 获取输入流
@@ -294,3 +371,4 @@ public class FileUtils {
     }
 
 }
+
