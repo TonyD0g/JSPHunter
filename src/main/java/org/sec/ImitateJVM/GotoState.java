@@ -1,0 +1,24 @@
+package org.sec.ImitateJVM;
+
+@SuppressWarnings("all")
+public class GotoState<T> {
+    private LocalVariables<T> localVariables;
+    private OperandStack<T> operandStack;
+
+    public LocalVariables<T> getLocalVariables() {
+        return localVariables;
+    }
+
+    public void setLocalVariables(LocalVariables<T> localVariables) {
+        this.localVariables = localVariables;
+    }
+
+    public OperandStack<T> getOperandStack() {
+        return operandStack;
+    }
+
+    public void setOperandStack(OperandStack<T> operandStack) {
+        this.operandStack = operandStack;
+    }
+}
+

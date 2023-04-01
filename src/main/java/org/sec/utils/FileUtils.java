@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -32,35 +33,32 @@ public class FileUtils {
         return String.format("%s%s.class", path, className.replace('.', File.separatorChar));
     }
 
-    public static void getAnyFilePath(String path, ArrayList<String> filePathArray) {
-        ArrayList<String> filePathList = new ArrayList();
+    /** 根据想要的后缀名读取文件到列表中 */
+    public static void getWantSuffixFilePath(String path, String wantSuffix,ArrayList<String> filePathArray) {
+        ArrayList<String> filePathList = new ArrayList<>();
         readDir(path, filePathList);
         String suffix;
         for (String filePath : filePathList) {
             suffix = readSuffix(filePath);
-
-            switch (suffix) {
-                case "jar":
-                case "jsp":
-                case "jspx":
-                    filePathArray.add(filePath);
+            if(Objects.equals(suffix, wantSuffix)){
+                filePathArray.add(filePath);
             }
         }
     }
 
     /**
-     * 读取Bytes
+     * 根据输入的filePath读取Bytes
      */
-    public static byte[] readBytes(String filepath) {
-        File file = new File(filepath);
+    public static byte[] readBytes(String filePath) {
+        File file = new File(filePath);
         if (!file.exists()) {
-            throw new IllegalArgumentException("[INFO] [org.sec.utils.FileUtils] File Not Exist: " + filepath);
+            throw new IllegalArgumentException("[INFO] [org.sec.utils.FileUtils] File Not Exist: " + filePath);
         }
 
         InputStream in = null;
 
         try {
-            in = new FileInputStream(file);
+            in = Files.newInputStream(file.toPath());
             in = new BufferedInputStream(in);
 
             ByteArrayOutputStream bao = new ByteArrayOutputStream();
@@ -73,7 +71,7 @@ public class FileUtils {
             IOUtils.closeQuietly(in);
         }
 
-        throw new RuntimeException("[Waring] [org.sec.utils.FileUtils] Can not read file: " + filepath);
+        throw new RuntimeException("[Waring] [org.sec.utils.FileUtils] Can not read file: " + filePath);
     }
 
     /**
