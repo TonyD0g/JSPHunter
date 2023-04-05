@@ -8,6 +8,27 @@
     <artifactId>SafeTools-Boot</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.sec.main</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <Built-By>https://github.com/TonyD0g/JspHunter</Built-By>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
@@ -27,19 +48,35 @@
             <artifactId>jcommander</artifactId>
             <version>1.81</version>
         </dependency>
+
+        <!-- http -->
         <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.13</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-jasper -->
+
+        <!-- jasper -->
         <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-jasper -->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-jasper</artifactId>
-            <version>10.1.7</version>
+            <version>8.5.81</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.ant/ant -->
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.10.13</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-juli -->
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-juli</artifactId>
+            <version>8.5.81</version>
+        </dependency>
+
 
         <!-- Java ASM -->
         <!-- https://mvnrepository.com/artifact/org.ow2.asm/asm -->
@@ -72,7 +109,15 @@
             <artifactId>asm-analysis</artifactId>
             <version>9.5</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.houbb/asm-tool -->
+        <dependency>
+            <groupId>com.github.houbb</groupId>
+            <artifactId>asm-tool</artifactId>
+            <version>0.0.3</version>
+        </dependency>
 
+
+        <!-- fileUtils -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>

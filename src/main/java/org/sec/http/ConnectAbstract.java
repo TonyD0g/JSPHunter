@@ -1,4 +1,4 @@
-package org.sec.http;
+package org.sec.Http;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;

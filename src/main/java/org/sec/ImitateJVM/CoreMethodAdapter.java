@@ -1,109 +1,118 @@
 package org.sec.ImitateJVM;
 
+import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
+import org.sec.Main;
 
 import java.util.*;
 
+/** 模拟栈帧的核心方法 */
 @SuppressWarnings("all")
 public class CoreMethodAdapter<T> extends MethodVisitor {
+    private static final Logger logger = Logger.getLogger(CoreMethodAdapter.class);
     private final AnalyzerAdapter analyzerAdapter;
     private final int access;
-    private final String name;
+    protected final String name;
     private final String desc;
-    private final String signature;
-    private final String[] exceptions;
+    public final String signature;
+    public final String[] exceptions;
 
     private final Map<Label, GotoState<T>> gotoStates = new HashMap<>();
     private final Set<Label> exceptionHandlerLabels = new HashSet<>();
 
-    protected OperandStack<T> operandStack;
-    protected LocalVariables<T> localVariables;
+    public OperandStack<T> operandStack;
+    public LocalVariables<T> localVariables;
 
-    // 使用黑名单的方式去过滤,即污点分析技术中的 "sink"
-    private static final Object[][] PASSTHROUGH_DATAFLOW = new Object[][]{
-            {"java/lang/Object", "toString", "()Ljava/lang/String;", 0},
+    // 使用白名单的方式去匹配 能外界输入的类及其方法
+    private static final Object[][] PASSTHROUGH_DATAFLOW;
 
-            // Taint from ObjectInputStream. Note that defaultReadObject() is handled differently below
-            {"java/io/ObjectInputStream", "readObject", "()Ljava/lang/Object;", 0},
-            {"java/io/ObjectInputStream", "readFields", "()Ljava/io/ObjectInputStream$GetField;", 0},
-            {"java/io/ObjectInputStream$GetField", "get", "(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;", 0},
+    static {
+        PASSTHROUGH_DATAFLOW = new Object[][]{
+                {"java/lang/Object", "toString", "()Ljava/lang/String;", 0},
 
-            // Pass taint from class name to returned class
-            {"java/lang/Object", "getClass", "()Ljava/lang/Class;", 0},
-            {"java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;", 0},
+                // Taint from ObjectInputStream. Note that defaultReadObject() is handled differently below
+                {"java/io/ObjectInputStream", "readObject", "()Ljava/lang/Object;", 0},
+                {"java/io/ObjectInputStream", "readFields", "()Ljava/io/ObjectInputStream$GetField;", 0},
+                {"java/io/ObjectInputStream$GetField", "get", "(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;", 0},
 
-            // Pass taint from class or method name to returned method
-            {"java/lang/Class", "getMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;", 0, 1},
+                // Pass taint from class name to returned class
+                {"java/lang/Object", "getClass", "()Ljava/lang/Class;", 0},
+                {"java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;", 0},
 
-            // Pass taint from class to methods
-            {"java/lang/Class", "getMethods", "()[Ljava/lang/reflect/Method;", 0},
-            {"java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", 0, 1},
-            {"java/lang/StringBuilder", "<init>", "(Ljava/lang/CharSequence;)V", 0, 1},
-            {"java/lang/StringBuilder", "append", "(Ljava/lang/Object;)Ljava/lang/StringBuilder;", 0, 1},
-            {"java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", 0, 1},
-            {"java/lang/StringBuilder", "append", "(Ljava/lang/StringBuffer;)Ljava/lang/StringBuilder;", 0, 1},
-            {"java/lang/StringBuilder", "append", "(Ljava/lang/CharSequence;)Ljava/lang/StringBuilder;", 0, 1},
-            {"java/lang/StringBuilder", "append", "(Ljava/lang/CharSequence;II)Ljava/lang/StringBuilder;", 0, 1},
-            {"java/lang/StringBuilder", "toString", "()Ljava/lang/String;", 0},
+                // Pass taint from class or method name to returned method
+                {"java/lang/Class", "getMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;", 0, 1},
 
-            {"java/io/ByteArrayInputStream", "<init>", "([B)V", 1},
-            {"java/io/ByteArrayInputStream", "<init>", "([BII)V", 1},
-            {"java/io/ObjectInputStream", "<init>", "(Ljava/io/InputStream;)V", 1},
-            {"java/io/File", "<init>", "(Ljava/lang/String;I)V", 1},
-            {"java/io/File", "<init>", "(Ljava/lang/String;Ljava/io/File;)V", 1},
-            {"java/io/File", "<init>", "(Ljava/lang/String;)V", 1},
-            {"java/io/File", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", 1},
+                // Pass taint from class to methods
+                {"java/lang/Class", "getMethods", "()[Ljava/lang/reflect/Method;", 0},
+                {"java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", 0, 1},
+                {"java/lang/StringBuilder", "<init>", "(Ljava/lang/CharSequence;)V", 0, 1},
+                {"java/lang/StringBuilder", "append", "(Ljava/lang/Object;)Ljava/lang/StringBuilder;", 0, 1},
+                {"java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", 0, 1},
+                {"java/lang/StringBuilder", "append", "(Ljava/lang/StringBuffer;)Ljava/lang/StringBuilder;", 0, 1},
+                {"java/lang/StringBuilder", "append", "(Ljava/lang/CharSequence;)Ljava/lang/StringBuilder;", 0, 1},
+                {"java/lang/StringBuilder", "append", "(Ljava/lang/CharSequence;II)Ljava/lang/StringBuilder;", 0, 1},
+                {"java/lang/StringBuilder", "toString", "()Ljava/lang/String;", 0},
 
-            {"java/nio/paths/Paths", "get", "(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;", 0},
+                {"java/io/ByteArrayInputStream", "<init>", "([B)V", 1},
+                {"java/io/ByteArrayInputStream", "<init>", "([BII)V", 1},
+                {"java/io/ObjectInputStream", "<init>", "(Ljava/io/InputStream;)V", 1},
+                {"java/io/File", "<init>", "(Ljava/lang/String;I)V", 1},
+                {"java/io/File", "<init>", "(Ljava/lang/String;Ljava/io/File;)V", 1},
+                {"java/io/File", "<init>", "(Ljava/lang/String;)V", 1},
+                {"java/io/File", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", 1},
 
-            {"java/net/URL", "<init>", "(Ljava/lang/String;)V", 1},
+                {"java/nio/paths/Paths", "get", "(Ljava/lang/String;[Ljava/lang/String;)Ljava/nio/file/Path;", 0},
 
-            {"javax/servlet/http/HttpServletRequest", "getParameter", "(Ljava/lang/String;)Ljava/lang/String;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getQueryString", "()Ljava/lang/String;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getParameterNames", "()Ljava/util/Enumeration;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getParameterValues", "(Ljava/lang/String;)[Ljava/lang/String;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getParameterMap", "()Ljava/util/Map;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getHeader", "(Ljava/lang/String;)Ljava/lang/String;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getHeaders", "(Ljava/lang/String;)Ljava/util/Enumeration;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getHeaderNames", "()Ljava/util/Enumeration;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getReader", "()Ljava/io/BufferedReader;", 0},
+                {"java/net/URL", "<init>", "(Ljava/lang/String;)V", 1},
 
-            // gadgetinspector默认查找的是反序列化的链，它认为每个方法的0参对象都是可以被控制的，但查找sql注入不一样，对于部分构造方法，需要自己明确哪个参数可以污染，要不然污点分析走不下去
-            {"org/springframework/jdbc/core/JdbcTemplate$1QueryStatementCallback", "<init>", "(Lorg/springframework/jdbc/core/JdbcTemplate;Ljava/lang/String;Lorg/springframework/jdbc/core/ResultSetExtractor;)V", 2},
+                {"javax/servlet/http/HttpServletRequest", "getParameter", "(Ljava/lang/String;)Ljava/lang/String;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getQueryString", "()Ljava/lang/String;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getParameterNames", "()Ljava/util/Enumeration;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getParameterValues", "(Ljava/lang/String;)[Ljava/lang/String;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getParameterMap", "()Ljava/util/Map;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getHeader", "(Ljava/lang/String;)Ljava/lang/String;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getHeaders", "(Ljava/lang/String;)Ljava/util/Enumeration;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getHeaderNames", "()Ljava/util/Enumeration;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getReader", "()Ljava/io/BufferedReader;", 0},
 
-            // 自己添加的 *号表示匹配所有参数、返回类型的方法
-            {"java/lang/String", "<init>", "*", 1},
-            {"java/lang/String", "valueOf", "*", 0},
-            {"sun/misc/BASE64Decoder", "decodeBuffer", "*", 1},
-            {"sun/misc/BASE64Decoder", "decodeBufferToByteBuffer", "*", 1},
-            {"java/util/Base64$Decoder", "decode", "*", 1},
-            {"java/lang/Class", "getDeclaredMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;", 0, 1},
-            {"java/lang/Class", "getDeclaredMethods", "()[Ljava/lang/reflect/Method;", 0},
-            {"java/lang/Class", "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;", 0},
-            {"java/lang/Class", "getDeclaredConstructor", "[Ljava/lang/Class;)Ljava/lang/reflect/Constructor;", 0, 1},
-            {"java/lang/Class", "getConstructor", "([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;", 0, 1},
-            {"java/lang/Class", "getConstructors", "()[Ljava/lang/reflect/Constructor;", 0},
-            {"java/util/List", "add", "(Ljava/lang/Object;)Z", 1},
-            {"java/lang/reflect/Constructor", "newInstance", "([Ljava/lang/Object;)Ljava/lang/Object;", 0, 1},
-            {"java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", 0, 1, 2},
-            {"java/lang/Process", "getInputStream", "()Ljava/io/InputStream;", 0},
-            {"java/util/Scanner", "<init>", "(Ljava/io/InputStream;)V", 1},
-            {"java/util/Scanner", "next", "()Ljava/lang/String;", 0},
-            {"java/lang/String", "getBytes", "*", 0},
-            {"sun/misc/BASE64Encoder", "encode", "*", 1},
+                // gadgetinspector默认查找的是反序列化的链，它认为每个方法的0参对象都是可以被控制的，但查找sql注入不一样，对于部分构造方法，需要自己明确哪个参数可以污染，要不然污点分析走不下去
+                {"org/springframework/jdbc/core/JdbcTemplate$1QueryStatementCallback", "<init>", "(Lorg/springframework/jdbc/core/JdbcTemplate;Ljava/lang/String;Lorg/springframework/jdbc/core/ResultSetExtractor;)V", 2},
 
-            // gadgetinspector跑出来的append方法污染点只有0号参数，显然是不对的，这里添加白名单
-            {"java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", 0, 1},
-            // 表示doFind()参数为空时候，没有污点
-            {"javax/crypto/Cipher", "doFinal", "()[B", -1},
-            {"javax/crypto/Cipher", "doFinal", "*", 1},
-            {"java/io/BufferedReader", "readLine", "()Ljava/lang/String;", 0},
-            {"javax/servlet/http/HttpServletRequest", "getInputStream", "()Ljavax/servlet/ServletInputStream;", 0},
-    };
+                // 自己添加的 *号表示匹配所有参数、返回类型的方法
+                {"java/lang/String", "<init>", "*", 1},
+                {"java/lang/String", "valueOf", "*", 0},
+                {"sun/misc/BASE64Decoder", "decodeBuffer", "*", 1},
+                {"sun/misc/BASE64Decoder", "decodeBufferToByteBuffer", "*", 1},
+                {"java/util/Base64$Decoder", "decode", "*", 1},
+                {"java/lang/Class", "getDeclaredMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;", 0, 1},
+                {"java/lang/Class", "getDeclaredMethods", "()[Ljava/lang/reflect/Method;", 0},
+                {"java/lang/Class", "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;", 0},
+                {"java/lang/Class", "getDeclaredConstructor", "[Ljava/lang/Class;)Ljava/lang/reflect/Constructor;", 0, 1},
+                {"java/lang/Class", "getConstructor", "([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;", 0, 1},
+                {"java/lang/Class", "getConstructors", "()[Ljava/lang/reflect/Constructor;", 0},
+                {"java/util/List", "add", "(Ljava/lang/Object;)Z", 1},
+                {"java/lang/reflect/Constructor", "newInstance", "([Ljava/lang/Object;)Ljava/lang/Object;", 0, 1},
+                {"java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", 0, 1, 2},
+                {"java/lang/Process", "getInputStream", "()Ljava/io/InputStream;", 0},
+                {"java/util/Scanner", "<init>", "(Ljava/io/InputStream;)V", 1},
+                {"java/util/Scanner", "next", "()Ljava/lang/String;", 0},
+                {"java/lang/String", "getBytes", "*", 0},
+                {"sun/misc/BASE64Encoder", "encode", "*", 1},
+
+                // gadgetinspector 跑出来的append方法污染点只有0号参数，显然是不对的，这里添加白名单
+                {"java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", 0, 1},
+                // 表示doFind()参数为空时候，没有污点
+                {"javax/crypto/Cipher", "doFinal", "()[B", -1},
+                {"javax/crypto/Cipher", "doFinal", "*", 1},
+                {"java/io/BufferedReader", "readLine", "()Ljava/lang/String;", 0},
+                {"javax/servlet/http/HttpServletRequest", "getInputStream", "()Ljavax/servlet/ServletInputStream;", 0},
+        };
+    }
 
     public CoreMethodAdapter(final int api, final MethodVisitor mv, final String owner, int access,
                              String name, String desc, String signature, String[] exceptions) {
+        // AnalyzerAdapter 的特点是“可以模拟frame的变化”，或者说“可以模拟local variables和operand stack的变化”
         super(api, new AnalyzerAdapter(owner, access, name, desc, mv));
         this.analyzerAdapter = (AnalyzerAdapter) this.mv;
         this.access = access;
@@ -123,29 +132,36 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         localVariables.set(index, values);
     }
 
+    /**
+     * 校验栈帧,如果不符合规范，则直接终结进程
+     */
     private void sanityCheck() {
         if (analyzerAdapter.stack != null && operandStack.size() != analyzerAdapter.stack.size()) {
             throw new IllegalStateException("bad stack size");
         }
     }
 
+    /** 控制跳转 */
     private void mergeGotoState(Label label) {
         if (gotoStates.containsKey(label)) {
             GotoState<T> state = gotoStates.get(label);
             // old -> label
             LocalVariables<T> oldLocalVariables = state.getLocalVariables();
             OperandStack<T> oldOperandStack = state.getOperandStack();
+
             // new -> null
             LocalVariables<T> newLocalVariables = new LocalVariables<>();
             OperandStack<T> newOperandStack = new OperandStack<>();
-            // init new
+
+            // init new,将旧的label迁移到新地方
             for (Set<T> original : oldLocalVariables.getList()) {
                 newLocalVariables.add(new HashSet<>(original));
             }
             for (Set<T> original : oldOperandStack.getList()) {
                 newOperandStack.add(new HashSet<>(original));
             }
-            // add current state
+
+            // add current state (?)
             for (int i = 0; i < newLocalVariables.size(); i++) {
                 while (i >= oldLocalVariables.size()) {
                     oldLocalVariables.add(new HashSet<>());
@@ -158,6 +174,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 }
                 oldOperandStack.get(i).addAll(oldOperandStack.get(i));
             }
+
             // set new state
             GotoState<T> newGotoState = new GotoState<>();
             newGotoState.setOperandStack(newOperandStack);
@@ -169,6 +186,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             // new -> null
             LocalVariables<T> newLocalVariables = new LocalVariables<>();
             OperandStack<T> newOperandStack = new OperandStack<>();
+
             // init new
             for (Set<T> original : oldLocalVariables.getList()) {
                 newLocalVariables.add(new HashSet<>(original));
@@ -176,6 +194,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             for (Set<T> original : oldOperandStack.getList()) {
                 newOperandStack.add(new HashSet<>(original));
             }
+
             // set new state
             GotoState<T> newGotoState = new GotoState<>();
             newGotoState.setOperandStack(newOperandStack);
@@ -184,25 +203,32 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         }
     }
 
+    /** asm扫描的开始 */
     @Override
-    public void visitCode() {      //visitCode表示asm开始扫描这个方法
+    public void visitCode() {
         super.visitCode();
         localVariables.clear();
         operandStack.clear();
 
+        // 如果为非静态方法,0号槽位存放this
         if ((this.access & Opcodes.ACC_STATIC) == 0) {
             localVariables.add(new HashSet<>());                 //这个位置是填放this的
         }
+        //扫描的这个方法中有多少个入参，局部变量表中就填充多少个+1的 空map对象
         for (Type argType : Type.getArgumentTypes(desc)) {
             for (int i = 0; i < argType.getSize(); i++) {
-                localVariables.add(new HashSet<>());        //扫描的这个方法中有多少个入参，局部变量表中就填充多少个+1的 空map对象
+                localVariables.add(new HashSet<>());
             }
         }
     }
 
+    /**
+     * 作用: 初始化操作数栈和局部变量表
+     */
     @Override
     public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {
         int stackSize = 0;
+        // 获取操作数栈的数据,并根据数据类型决定长度(int是1字节,long/double是2字节)
         for (int i = 0; i < nStack; i++) {
             Object typ = stack[i];
             int objectSize = 1;
@@ -214,6 +240,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             }
             stackSize += objectSize;
         }
+        // 局部变量表同理
         int localSize = 0;
         for (int i = 0; i < nLocal; i++) {
             Object typ = local[i];
@@ -226,6 +253,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             }
             localSize += objectSize;
         }
+
+        // 删除多余部分
         for (int i = operandStack.size() - stackSize; i > 0; i--) {
             operandStack.remove(operandStack.size() - 1);
         }
@@ -236,6 +265,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /**
+     * 依据JVM文档对操作数栈进行相应的出栈和压栈
+     */
     @Override
     public void visitInsn(int opcode) {
         Set<T> saved0, saved1, saved2, saved3;
@@ -524,6 +556,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /**
+     * 依据JVM文档对操作数栈进行相应的出栈和压栈
+     */
     @Override
     public void visitIntInsn(int opcode, int operand) {
         switch (opcode) {
@@ -542,6 +577,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /**
+     * 依据JVM文档对操作数栈进行相应的出栈和压栈
+     */
     @Override
     public void visitVarInsn(int opcode, int var) {
         for (int i = localVariables.size(); i <= var; i++) {
@@ -590,6 +628,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /**
+     * 依据JVM文档对操作数栈进行相应的出栈和压栈
+     */
     @Override
     public void visitTypeInsn(int opcode, String type) {
         switch (opcode) {
@@ -613,6 +654,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /**
+     * 依据JVM文档对操作数栈进行相应的出栈和压栈
+     */
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String desc) {
         int typeSize = Type.getType(desc).getSize();
@@ -646,8 +690,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
-    // 获取method参数类型
-    public Type[] getMethodType(int opcode, String owner, String name, String desc, boolean itf){
+    /**
+     * 获取method的参数类型
+     */
+    public Type[] getMethodType(int opcode, String owner, String name, String desc, boolean itf) {
         Type[] argTypes = Type.getArgumentTypes(desc);
         if (opcode != Opcodes.INVOKESTATIC) {
             Type[] extendedArgTypes = new Type[argTypes.length + 1];
@@ -658,9 +704,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         return argTypes;
     }
 
+    /** 对方法调用中的参数进行污点分析 */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-        Type[] argTypes = getMethodType(opcode, owner, name,desc,itf);
+        // 获取method的参数类型
+        Type[] argTypes = getMethodType(opcode, owner, name, desc, itf);
 
         final Type returnType = Type.getReturnType(desc);
         final int retSize = returnType.getSize();
@@ -677,6 +725,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 for (int i = 0; i < argTypes.length; i++) {
                     Type argType = argTypes[i];
                     if (argType.getSize() > 0) {
+                        // 弹栈的目的是模拟 执行方法
                         for (int j = 0; j < argType.getSize() - 1; j++) {
                             operandStack.pop();
                         }
@@ -689,9 +738,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     resultTaint = new HashSet<>();
                 }
 
-                //todo 3 在名单内的方法的调用，已预置哪个参数可以污染返回值
-                //例外，污染白名单，固定哪个参数可以污染下去
+                // todo 3 在名单内的方法的调用，已预置哪个参数可以污染返回值 (?)
+                // 白名单匹配 能外部输入的类
                 for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
+                    // 如果符合我们的白名单
                     if (passthrough[0].equals(owner) && passthrough[1].equals(name) && (passthrough[2].equals(desc) || passthrough[2].equals("*"))) {
                         for (int i = 3; i < passthrough.length; i++) {
                             resultTaint.addAll(argTaint.get((Integer) passthrough[i]));
@@ -699,10 +749,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                         break;
                     }
                 }
-
+                // 处理list.add这个特殊情况
                 if (owner.equals("java/util/List") && name.equals("add") && desc.equals("(Ljava/lang/Object;)Z")) {
-                    //主要处理list.add等情况。初期的实现还是在白名单里面加了list.add。这里没加遇到继承类的情况，比如声明了x继承了List，然后调用x.add这种情况
+                    // TODO 解决 "继承list" 的绕过
                     Set<T> set = argTaint.get(0);
+                    // 将污点:"list.add(taint)" 添加到 resultTaint,通过获取list数组中taint所在下标，进而获取到taint,最后再添加到resultTaint
                     for (Object taint : set) {
                         if (taint instanceof String && ((String) taint).indexOf("instruction") > -1 && resultTaint.size() > 0) {
                             String localVariablesNum = ((String) taint).substring(11);
@@ -713,6 +764,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 }
 
                 if (retSize > 0) {
+                    // 为什么返回值大于0就要将resultTaint压入操作数栈呢? 因为:为了让上层函数去污点分析
                     operandStack.push(resultTaint);
                     for (int i = 1; i < retSize; i++) {
                         operandStack.push();
@@ -723,13 +775,15 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 throw new IllegalStateException("unsupported opcode: " + opcode);
         }
         super.visitMethodInsn(opcode, owner, name, desc, itf);
-        //处理当return new String(evilCode)这种情况，构造方法返回值为retSize为0，但其实他可以污染所有所有方法参数出栈后的栈顶
+
+        //处理当return new String(evilCode)这种情况，构造方法返回值为retSize为0，但其实他可以污染 上层函数(所有方法参数出栈后的栈顶)
         if (retSize == 0 && operandStack.size() > 0 && resultTaint != null && resultTaint.size() > 0) {
             operandStack.get(0).addAll(resultTaint);
         }
         sanityCheck();
     }
 
+    /** 对方法执行进行污点分析 */
     @Override
     public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
         int argsSize = 0;
@@ -737,6 +791,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             argsSize += type.getSize();
         }
         int retSize = Type.getReturnType(desc).getSize();
+        // 调用方法时,所用参数全部出栈,如果有返回值,则将返回值压入栈中
         for (int i = 0; i < argsSize; i++) {
             operandStack.pop();
         }
@@ -747,6 +802,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /** 对代码中的jump进行相应的出栈压栈,和label的跳转 */
     @Override
     public void visitJumpInsn(int opcode, Label label) {
         switch (opcode) {
@@ -785,6 +841,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /** 对label 进行相应处理 */
     @Override
     public void visitLabel(Label label) {
         if (gotoStates.containsKey(label)) {
@@ -812,6 +869,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /** 对载入字符串进行相应处理 */
     @Override
     public void visitLdcInsn(Object cst) {
         if (cst instanceof Long || cst instanceof Double) {
@@ -830,6 +888,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /** 对switch进行相应处理 */
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
         operandStack.pop();
@@ -840,7 +899,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         super.visitTableSwitchInsn(min, max, dflt, labels);
         sanityCheck();
     }
-
+    /** 对switch进行相应处理 */
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
         operandStack.pop();
@@ -867,12 +926,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         return super.visitInsnAnnotation(typeRef, typePath, desc, visible);
     }
 
+    /** 对try-catch进行相应处理 */
     @Override
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
         exceptionHandlerLabels.add(handler);
         super.visitTryCatchBlock(start, end, handler, type);
     }
 
+    /** 对try-catch进行相应处理 */
     @Override
     public AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
         return super.visitTryCatchAnnotation(typeRef, typePath, desc, visible);
@@ -883,6 +944,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         super.visitMaxs(maxStack, maxLocals);
     }
 
+    /** MethodVisitor 执行结束 */
     @Override
     public void visitEnd() {
         super.visitEnd();

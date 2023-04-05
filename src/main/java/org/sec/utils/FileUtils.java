@@ -302,7 +302,7 @@ public class FileUtils {
      * 读取 WebDir
      */
     public static Set<String> readWebDir(String webDir, Set<String> webDirSet) {
-        ArrayList<String> allFileName = new ArrayList<String>();
+        ArrayList<String> allFileName = new ArrayList<>();
         readDir(webDir, allFileName);
         for (String filename : allFileName) {
             String tag = File.separator + "WEB-INF" + File.separator;

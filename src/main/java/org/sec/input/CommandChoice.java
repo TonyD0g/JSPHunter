@@ -7,7 +7,7 @@ public abstract class CommandChoice{
     public static boolean CommandChoice(Command command, JCommander jc) {
         if (command.help) {
             jc.usage();
-            return false;
+            return true;
         }
         if (command.output == null || command.output.equals("")) {
             command.output = "result.jsp"; // [+]

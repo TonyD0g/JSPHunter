@@ -1,7 +1,6 @@
 package org.sec.utils;
 
 import org.apache.log4j.Logger;
-import org.sec.start.Application;
 
 import java.io.File;
 
@@ -76,13 +75,15 @@ public class stringUtils {
         StringBuilder afterDecodeName = new StringBuilder();
         int num = 0;
         for (String part : jspNameArr) {
-//            System.out.println(part);
             String afterDecode = null;
-            try {
-                afterDecode = decodeUnicode("\\u" + part.substring(0, 4));
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (part.length() >= 4) {
+                try {
+                    afterDecode = decodeUnicode("\\u" + part.substring(0, 4));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+
             if (part.length() >= 4 && afterDecode != null && ("\\u" + part.substring(0, 4)).equals(unicodeEncoding(afterDecode))) {
                 afterDecodeName.append(afterDecode);
                 afterDecodeName.append(part.substring(4));
@@ -100,17 +101,28 @@ public class stringUtils {
     private static String decodeUnicode(final String dataStr) {
         int start = 0;
         int end = 0;
-        final StringBuffer buffer = new StringBuffer();
+        final StringBuilder buffer = new StringBuilder();
         while (start > -1) {
             end = dataStr.indexOf("\\u", start + 2);
-            String charStr = "";
+            String charStr;
             if (end == -1) {
-                charStr = dataStr.substring(start + 2, dataStr.length());
+                charStr = dataStr.substring(start + 2);
             } else {
                 charStr = dataStr.substring(start + 2, end);
             }
-            char letter = (char) Integer.parseInt(charStr, 16); // 16进制parse整形字符串。
-            buffer.append(new Character(letter).toString());
+            char letter = 0;
+            int flag = 0;
+            try {
+                letter = (char) Integer.parseInt(charStr, 16); // 16进制转为int,int转char
+                flag = 1;
+            } catch (Exception ignored) {
+
+            }
+            if (flag == 1) {
+                buffer.append(letter);
+            } else {
+                buffer.append(charStr);
+            }
             start = end;
         }
         return buffer.toString();

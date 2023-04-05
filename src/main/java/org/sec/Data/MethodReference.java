@@ -1,5 +1,8 @@
 package org.sec.Data;
 
+import java.util.Objects;
+
+/** 方法引用对象,用于表示一个类的各种信息 */
 public class MethodReference {
     private final String owner;
     private final String name;
@@ -29,6 +32,7 @@ public class MethodReference {
         return isStatic;
     }
 
+    // 类似于windows api编程中的 handle
     public static class Handle {
         private final String owner;
         private final String name;
@@ -67,10 +71,10 @@ public class MethodReference {
 
             Handle handle = (Handle) o;
 
-            if (owner != null ? !owner.equals(handle.owner) : handle.owner != null)
+            if (!Objects.equals(owner, handle.owner))
                 return false;
-            if (name != null ? !name.equals(handle.name) : handle.name != null) return false;
-            return desc != null ? desc.equals(handle.desc) : handle.desc == null;
+            if (!Objects.equals(name, handle.name)) return false;
+            return Objects.equals(desc, handle.desc);
         }
 
         @Override
@@ -82,8 +86,8 @@ public class MethodReference {
         }
     }
 
+    /** 工厂类,用于返回 方法引用对象 和 方法引用对象的序列化数据 */
     public static class Factory implements DataFactory<MethodReference> {
-
         @Override
         public MethodReference parse(String[] fields) {
             return new MethodReference(

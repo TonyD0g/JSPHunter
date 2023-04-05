@@ -19,5 +19,5 @@ public  class Command {
     public String classPath;
 
     @Parameter(names = {"-f", "--file"}, description = "指定web目录下的某个文件")
-    public static String file;
+    public String file;
 }
