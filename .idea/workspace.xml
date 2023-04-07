@@ -40,18 +40,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "extract.method.default.visibility": "private",
-    "last_opened_file_path": "D:/Coding/JSPHunter",
-    "project.structure.last.edited": "库",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "project.propDebugger"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;extract.method.default.visibility&quot;: &quot;private&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Coding/JSPHunter&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;库&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propDebugger&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
@@ -128,6 +128,16 @@
       <workItem from="1680680664620" duration="204000" />
       <workItem from="1680681869051" duration="5776000" />
       <workItem from="1680690139201" duration="16173000" />
+      <workItem from="1680746308498" duration="9610000" />
+      <workItem from="1680764780895" duration="7069000" />
+      <workItem from="1680774054303" duration="15000" />
+      <workItem from="1680777346465" duration="1135000" />
+      <workItem from="1680783459362" duration="5437000" />
+      <workItem from="1680825533767" duration="310000" />
+      <workItem from="1680829838952" duration="220000" />
+      <workItem from="1680832951644" duration="179000" />
+      <workItem from="1680854147938" duration="1423000" />
+      <workItem from="1680855600003" duration="14015000" />
     </task>
     <servers />
   </component>
@@ -136,30 +146,25 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>247</line>
-          <option name="timeStamp" value="77" />
+          <line>177</line>
+          <option name="timeStamp" value="93" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>162</line>
-          <option name="timeStamp" value="82" />
+          <line>196</line>
+          <option name="timeStamp" value="95" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>135</line>
-          <properties class="org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" method="visitMethodInsn">
+          <line>153</line>
+          <properties class="org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" method="setTaintInReturnValue">
             <option name="EMULATED" value="true" />
             <option name="WATCH_EXIT" value="false" />
           </properties>
-          <option name="timeStamp" value="83" />
+          <option name="timeStamp" value="97" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <watches-manager>
-      <configuration name="Application">
-        <watch expression="operandStack" language="JAVA" />
-      </configuration>
-    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -3,13 +3,16 @@ package org.sec.ImitateJVM;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
-import org.sec.Main;
+import org.sec.utils.stringUtils;
 
 import java.util.*;
 
-/** 模拟栈帧的核心方法 */
+/**
+ * 模拟栈帧的核心方法
+ */
 @SuppressWarnings("all")
 public class CoreMethodAdapter<T> extends MethodVisitor {
+    public static String token = "";
     private static final Logger logger = Logger.getLogger(CoreMethodAdapter.class);
     private final AnalyzerAdapter analyzerAdapter;
     private final int access;
@@ -141,7 +144,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         }
     }
 
-    /** 控制跳转 */
+    /**
+     * 控制跳转
+     */
     private void mergeGotoState(Label label) {
         if (gotoStates.containsKey(label)) {
             GotoState<T> state = gotoStates.get(label);
@@ -203,7 +208,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         }
     }
 
-    /** asm扫描的开始 */
+    /**
+     * 模拟栈帧 的起点
+     */
     @Override
     public void visitCode() {
         super.visitCode();
@@ -577,11 +584,29 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
+    /** 赋值token给Var 格式: instruction-token-var-isExit */
+    public void setTokenWithVar(int var){
+        Set instruction = new HashSet<>();
+        // 如果 isExit 为 0的话,说明token没有赋值,需要赋值,否则不赋值token
+        Set sets = localVariables.get(var);
+        for (Object set : sets) {
+            if (set instanceof String && ((String) set).indexOf("instruction") > -1 && new Integer(stringUtils.splitBySymbol((String) set, "-")[3]) == 0) {
+                instruction.add("instruction" + "-" + CoreMethodAdapter.token + "-" + var + "-" + 1);
+                localVariables.get(var).addAll(instruction);
+            }else{
+
+            }
+        }
+    }
+
     /**
-     * 依据JVM文档对操作数栈进行相应的出栈和压栈
+     * 通过模拟栈帧,对被使用的变量分别下标记
+     * var: 在LV中的下标
      */
     @Override
     public void visitVarInsn(int opcode, int var) {
+        CoreMethodAdapter.token = stringUtils.getRandomString(8);
+
         for (int i = localVariables.size(); i <= var; i++) {
             localVariables.add(new HashSet<>());
         }
@@ -603,21 +628,24 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.FSTORE:
                 operandStack.pop();
                 localVariables.set(var, new HashSet<>());
+
+                setTokenWithVar(var);
                 break;
             case Opcodes.DSTORE:
             case Opcodes.LSTORE:
                 operandStack.pop();
                 operandStack.pop();
                 localVariables.set(var, new HashSet<>());
+
+                setTokenWithVar(var);;
                 break;
             case Opcodes.ASTORE:
                 saved0 = operandStack.pop();
                 localVariables.set(var, saved0);
+
                 //像一些方法如，list.add(taint) taint是可以污染list的，但是当list.add(taint)调用完之后,list已经不在栈内了，无法给栈上的数据污染，所以这种情况
                 //直接给操作数表上的对应做上污染标记:instruction1表示，这个对象或值来自操作数表一号位置
-                Set instruction = new HashSet<>();
-                instruction.add("instruction" + var);
-                localVariables.get(var).addAll(instruction);
+                setTokenWithVar(var);
                 break;
             case Opcodes.RET:
                 break;
@@ -655,7 +683,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
     }
 
     /**
-     * 依据JVM文档对操作数栈进行相应的出栈和压栈
+     * 对 Field 进行相应的出栈压栈
      */
     @Override
     public void visitFieldInsn(int opcode, String owner, String name, String desc) {
@@ -704,9 +732,12 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         return argTypes;
     }
 
-    /** 对方法调用中的参数进行污点分析 */
+    /**
+     * 对方法调用中的参数进行污点分析
+     */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+
         // 获取method的参数类型
         Type[] argTypes = getMethodType(opcode, owner, name, desc, itf);
 
@@ -783,7 +814,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
-    /** 对方法执行进行污点分析 */
+    /**
+     * 对方法执行进行污点分析
+     */
     @Override
     public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
         int argsSize = 0;
@@ -802,7 +835,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
-    /** 对代码中的jump进行相应的出栈压栈,和label的跳转 */
+    /**
+     * 对代码中的jump进行相应的出栈压栈,和label的跳转
+     */
     @Override
     public void visitJumpInsn(int opcode, Label label) {
         switch (opcode) {
@@ -841,7 +876,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
-    /** 对label 进行相应处理 */
+    /**
+     * 对label 进行相应处理
+     */
     @Override
     public void visitLabel(Label label) {
         if (gotoStates.containsKey(label)) {
@@ -869,7 +906,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
-    /** 对载入字符串进行相应处理 */
+    /**
+     * 对载入字符串进行相应处理
+     */
     @Override
     public void visitLdcInsn(Object cst) {
         if (cst instanceof Long || cst instanceof Double) {
@@ -888,7 +927,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
-    /** 对switch进行相应处理 */
+    /**
+     * 对switch进行相应处理
+     */
     @Override
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
         operandStack.pop();
@@ -899,7 +940,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         super.visitTableSwitchInsn(min, max, dflt, labels);
         sanityCheck();
     }
-    /** 对switch进行相应处理 */
+
+    /**
+     * 对switch进行相应处理
+     */
     @Override
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
         operandStack.pop();
@@ -926,14 +970,18 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         return super.visitInsnAnnotation(typeRef, typePath, desc, visible);
     }
 
-    /** 对try-catch进行相应处理 */
+    /**
+     * 对try-catch进行相应处理
+     */
     @Override
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
         exceptionHandlerLabels.add(handler);
         super.visitTryCatchBlock(start, end, handler, type);
     }
 
-    /** 对try-catch进行相应处理 */
+    /**
+     * 对try-catch进行相应处理
+     */
     @Override
     public AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
         return super.visitTryCatchAnnotation(typeRef, typePath, desc, visible);
@@ -944,7 +992,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         super.visitMaxs(maxStack, maxLocals);
     }
 
-    /** MethodVisitor 执行结束 */
+    /**
+     * MethodVisitor 执行结束
+     */
     @Override
     public void visitEnd() {
         super.visitEnd();

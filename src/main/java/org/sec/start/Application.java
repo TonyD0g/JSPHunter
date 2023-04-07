@@ -123,7 +123,7 @@ class CommandChoiceTest extends CommandChoice {
                     Constant.classNameToJspName.put(classFileName, webJspName);
                 }
 
-                // 扫描是否存在外部传参
+                // 对方法进行dfs和逆排序
                 PassthroughDiscovery passthroughDiscovery = new PassthroughDiscovery();
                 passthroughDiscovery.discover();
                 // 扫描是否存在恶意利用链

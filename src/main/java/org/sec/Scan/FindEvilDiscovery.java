@@ -1,6 +1,7 @@
 package org.sec.Scan;
 
 import com.github.houbb.asm.tool.reflection.AsmMethods;
+import com.github.houbb.heaven.util.lang.reflect.ClassUtil;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
@@ -8,8 +9,11 @@ import org.sec.Constant.Constant;
 import org.sec.Data.MethodReference;
 import org.sec.ImitateJVM.CoreMethodAdapter;
 import org.sec.Scan.JVMMethodScan.*;
-import com.github.houbb.asm.*;
+import org.sec.utils.RegexUtils;
+import org.sec.utils.stringUtils;
+import java.util.ArrayList;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -124,11 +128,44 @@ public class FindEvilDiscovery {
             }
         }
 
-        public void printMethod(String owner, String name, String desc){
+        public void printMethod(String owner, String name, String desc) {
             System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~");
             System.out.println("[~] The owner: " + owner + " The name: " + name + " The desc: " + desc);
             System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
         }
+
+        /**
+         * 获取类中方法的所有参数
+         */
+        public void getTheAllParamNameOfMethod(Class clazz, String methodName, Class... paramTypes) {
+            Method method = ClassUtil.getMethod(clazz, methodName, paramTypes);
+            List<String> param = AsmMethods.getParamNamesByAsm(method);
+            System.out.println("[name]" + param.toString());
+        }
+
+        /**
+         * 根据name反射获取Clazz
+         */
+        public Class getClassForName(String ClassName) throws ClassNotFoundException {
+            return Class.forName(ClassName);
+        }
+
+        // todo 2.对返回值下污点,即对污点进行标记
+        public void setTaintInReturnValue(String returnType) {
+            // 第一种情况: 返回值只有一个
+            // HashMap<,Object> taintCollection = new HashMap<>();
+
+            try {
+                // 创建形如 returnType returnObject = new returnType(); 的伪代码,将 returnObject 用于污点传递
+                String[] realReturnTypeList = stringUtils.hanleFieldType(returnType);
+                Class clazz = getClassForName(realReturnTypeList[realReturnTypeList.length - 1]);
+                Object returnObject =  clazz.newInstance();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         /**
          * 污点分析,和输出污点分析结果
          */
@@ -136,20 +173,19 @@ public class FindEvilDiscovery {
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
             //printMethod(owner,name,desc);
 
-            // 1.获取 获取 类名,方法名,方法的所有参数类型和返回类型,即 owner name desc
+            // 1.获取 类名,方法名,方法的所有参数类型和返回类型,即 owner name desc
             // 1-1 通过 desc 获取 类名,即owner
             Type[] argTypes = Type.getArgumentTypes(desc);
-            // 1-2 获取 方法的所有参数类型和返回类型,即desc
-            Type returnType = Type.getReturnType(desc);
+            // 1-2 获取 方法的所有参数类型和返回类型
+            // Type returnType = Type.getReturnType(desc); // 1-2-1 返回类型
+            String returnType = RegexUtils.getXXXContent("rightBrackets", desc); // 1-2-1 返回类型
+            String methodParamType = RegexUtils.getXXXContent("brackets", desc); // 1-2-2 方法参数类型
             // 1-3 获取返回值类型大小
             int retSize = Type.getReturnType(desc).getSize();
-            // 1-4 获取方法的所有参数
-            Method method = ClassUtil.getMethod(AsmMethodsTest.class,
-                    "common", String.class);
-            List<String> param =  AsmMethods.getParamNamesByAsm(method);
-            Assert.assertEquals("[name]", param.toString());
 
             // 2.对返回值下污点,即对污点进行标记
+            // setTaintInReturnValue(returnType);
+
             Set<Integer> resultTaint;
             //非静态方法需要把实例类型放在第一个元素
             if (opcode != Opcodes.INVOKESTATIC) {
@@ -180,7 +216,7 @@ public class FindEvilDiscovery {
                         }
                         stackIndex += argType.getSize();
                     }
-                   // System.out.println("\n\n" + argTaint.get(0));
+                    // System.out.println("\n\n" + argTaint.get(0));
                     // 构造方法的调用，意味参数0可以污染返回值
                     if (name.equals("<init>")) {
                         // 将结果污点传递到原始污点集,初始化的对象直接被参数污染
