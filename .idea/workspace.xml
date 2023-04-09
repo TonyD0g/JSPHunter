@@ -19,6 +19,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Class" />
+        <option value="FxmlFile" />
       </list>
     </option>
   </component>
@@ -138,6 +139,10 @@
       <workItem from="1680832951644" duration="179000" />
       <workItem from="1680854147938" duration="1423000" />
       <workItem from="1680855600003" duration="14015000" />
+      <workItem from="1680922822170" duration="2907000" />
+      <workItem from="1680928397328" duration="2659000" />
+      <workItem from="1680933344412" duration="10026000" />
+      <workItem from="1680949545183" duration="12911000" />
     </task>
     <servers />
   </component>
@@ -146,15 +151,15 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>177</line>
-          <option name="timeStamp" value="93" />
+          <line>341</line>
+          <option name="timeStamp" value="113" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>196</line>
-          <option name="timeStamp" value="95" />
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/CoreMethodAdapter.java</url>
+          <line>763</line>
+          <option name="timeStamp" value="120" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-method">
+        <line-breakpoint type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
           <line>153</line>
           <properties class="org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" method="setTaintInReturnValue">
@@ -165,6 +170,12 @@
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <watches-manager>
+      <configuration name="Application">
+        <watch expression="resultTaint" language="JAVA" />
+        <watch expression="argTaint" language="JAVA" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

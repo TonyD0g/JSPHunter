@@ -30,6 +30,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
     // 使用白名单的方式去匹配 能外界输入的类及其方法
     private static final Object[][] PASSTHROUGH_DATAFLOW;
 
+    // todo 将此白名单导出到一个文件中,使用fileUtils去读取,方便于扩展
     static {
         PASSTHROUGH_DATAFLOW = new Object[][]{
                 {"java/lang/Object", "toString", "()Ljava/lang/String;", 0},
@@ -110,6 +111,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 {"javax/crypto/Cipher", "doFinal", "*", 1},
                 {"java/io/BufferedReader", "readLine", "()Ljava/lang/String;", 0},
                 {"javax/servlet/http/HttpServletRequest", "getInputStream", "()Ljavax/servlet/ServletInputStream;", 0},
+
+                {"java/lang/ProcessBuilder", "command", "([Ljava/lang/String;)Ljava/lang/ProcessBuilder;", 1},
+                {"java/lang/ProcessBuilder", "<init>", "([Ljava/lang/String;)V", 1}
         };
     }
 
@@ -584,8 +588,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
-    /** 赋值token给Var 格式: instruction-token-var-isExit */
-    public void setTokenWithVar(int var){
+    /**
+     * 赋值token给Var 格式: instruction-token-var-isExit
+     */
+    public void setTokenWithVar(int var) {
         Set instruction = new HashSet<>();
         // 如果 isExit 为 0的话,说明token没有赋值,需要赋值,否则不赋值token
         Set sets = localVariables.get(var);
@@ -593,7 +599,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             if (set instanceof String && ((String) set).indexOf("instruction") > -1 && new Integer(stringUtils.splitBySymbol((String) set, "-")[3]) == 0) {
                 instruction.add("instruction" + "-" + CoreMethodAdapter.token + "-" + var + "-" + 1);
                 localVariables.get(var).addAll(instruction);
-            }else{
+            } else {
 
             }
         }
@@ -629,7 +635,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 localVariables.set(var, new HashSet<>());
 
-                setTokenWithVar(var);
+                //setTokenWithVar(var);
                 break;
             case Opcodes.DSTORE:
             case Opcodes.LSTORE:
@@ -637,7 +643,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 localVariables.set(var, new HashSet<>());
 
-                setTokenWithVar(var);;
+                //setTokenWithVar(var);
                 break;
             case Opcodes.ASTORE:
                 saved0 = operandStack.pop();
@@ -645,7 +651,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
 
                 //像一些方法如，list.add(taint) taint是可以污染list的，但是当list.add(taint)调用完之后,list已经不在栈内了，无法给栈上的数据污染，所以这种情况
                 //直接给操作数表上的对应做上污染标记:instruction1表示，这个对象或值来自操作数表一号位置
-                setTokenWithVar(var);
+                // setTokenWithVar(var);
+                Set instruction = new HashSet<>();
+                instruction.add("instruction" + var);
+                localVariables.get(var).addAll(instruction);
+
                 break;
             case Opcodes.RET:
                 break;
@@ -737,10 +747,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+        // body : class本体
+        Set<Integer> body;
 
         // 获取method的参数类型
         Type[] argTypes = getMethodType(opcode, owner, name, desc, itf);
-
         final Type returnType = Type.getReturnType(desc);
         final int retSize = returnType.getSize();
         Set<T> resultTaint;
@@ -749,10 +760,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.INVOKEVIRTUAL:
             case Opcodes.INVOKESPECIAL:
             case Opcodes.INVOKEINTERFACE:
+                if ((owner.equals("java/lang/ProcessBuilder") && name.equals("<init>") && desc.equals("([Ljava/lang/String;)V"))) {
+                    System.out.println("hack!");
+                }
                 final List<Set<T>> argTaint = new ArrayList<>(argTypes.length);
                 for (int i = 0; i < argTypes.length; i++) {
                     argTaint.add(null);
                 }
+
                 for (int i = 0; i < argTypes.length; i++) {
                     Type argType = argTypes[i];
                     if (argType.getSize() > 0) {
@@ -760,6 +775,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                         for (int j = 0; j < argType.getSize() - 1; j++) {
                             operandStack.pop();
                         }
+                        // 记录方法参数
                         argTaint.set(argTypes.length - 1 - i, operandStack.pop());
                     }
                 }
@@ -769,10 +785,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     resultTaint = new HashSet<>();
                 }
 
+
                 // todo 3 在名单内的方法的调用，已预置哪个参数可以污染返回值 (?)
-                // 白名单匹配 能外部输入的类
+                // 白名单匹配 污点源
                 for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
-                    // 如果符合我们的白名单
+                    // 如果符合我们的白名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
                     if (passthrough[0].equals(owner) && passthrough[1].equals(name) && (passthrough[2].equals(desc) || passthrough[2].equals("*"))) {
                         for (int i = 3; i < passthrough.length; i++) {
                             resultTaint.addAll(argTaint.get((Integer) passthrough[i]));
@@ -780,8 +797,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                         break;
                     }
                 }
+                // || (owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;"))
                 // 处理list.add这个特殊情况
-                if (owner.equals("java/util/List") && name.equals("add") && desc.equals("(Ljava/lang/Object;)Z")) {
+                if ((owner.equals("java/util/List") && name.equals("add") && desc.equals("(Ljava/lang/Object;)Z"))) {
                     // TODO 解决 "继承list" 的绕过
                     Set<T> set = argTaint.get(0);
                     // 将污点:"list.add(taint)" 添加到 resultTaint,通过获取list数组中taint所在下标，进而获取到taint,最后再添加到resultTaint
@@ -796,6 +814,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
 
                 if (retSize > 0) {
                     // 为什么返回值大于0就要将resultTaint压入操作数栈呢? 因为:为了让上层函数去污点分析
+                    // 否则如果是没有返回值的话,那根本不用把 resultTaint 向上传递,说明此函数根本就是摆设
                     operandStack.push(resultTaint);
                     for (int i = 1; i < retSize; i++) {
                         operandStack.push();
@@ -808,9 +827,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         super.visitMethodInsn(opcode, owner, name, desc, itf);
 
         //处理当return new String(evilCode)这种情况，构造方法返回值为retSize为0，但其实他可以污染 上层函数(所有方法参数出栈后的栈顶)
+
+        // ? 加个 dup标记,如果有operandStack.get(0) 存在dup标记,则污染 被dup标记的operandStack.index(标号)
         if (retSize == 0 && operandStack.size() > 0 && resultTaint != null && resultTaint.size() > 0) {
             operandStack.get(0).addAll(resultTaint);
         }
+//        if(retSize == 0 && operandStack.size() > 0){
+//            //operandStack.set(0,1);
+//        }
         sanityCheck();
     }
 

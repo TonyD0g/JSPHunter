@@ -274,7 +274,7 @@ public class PassthroughDiscovery {
                 case Opcodes.IRETURN://从当前方法返回int
                 case Opcodes.FRETURN://从当前方法返回float
                 case Opcodes.ARETURN://从当前方法返回对象引用
-                    // 强制类型转换,将污点索引存放到 returnTaint
+                    // 强制类型转换,将 污点参数的索引 存放到 returnTaint
                     Set taints = operandStack.get(0);
                     for (Object taint : taints) {
                         if (taint instanceof Integer) {
@@ -345,11 +345,6 @@ public class PassthroughDiscovery {
             super.visitFieldInsn(opcode, owner, name, desc);
         }
 
-        public void judgeMalicious(String str, Set operandStackTop) {
-
-        }
-
-
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
             // 获取method参数类型
@@ -378,21 +373,6 @@ public class PassthroughDiscovery {
                             Set operandStackTop = operandStack.get(stackIndex + argType.getSize() - 1);
                             argTaint.set(methodArgTypes.length - 1 - i, operandStackTop);
 
-                            // judgeMalicious(operandStackTop);
-                            // todo 遍历方法参数,如果是从被标记的LV下标取出的,则被污染
-                            // 遍历 LV,如果LV中被标记的有一个是方法参数
-//                            for (int j = 0; j < localVariables.size(); j++) {
-//                                String str =  ((String) (Object) localVariables.get(j));
-//                                if (str.contains("instruction")) {
-//                                    // 而且取出来的LV下标与之相等
-//                                    String[] splitStr = stringUtils.splitBySymbol(str, "-");
-//                                    // 获取其在LV中的下标
-////                                    new Integer(splitStr[1])
-////                                            if(){
-////
-////                                            }
-//                                }
-//                            }
                         }
                         stackIndex += argType.getSize();
                     }
@@ -407,13 +387,14 @@ public class PassthroughDiscovery {
                     }
 
                     // 前面已做逆拓扑，调用链最末端最先被visit，因此，调用到的方法必然已被visit分析过
-                    // 判断此时的method是否存在于调用链(? 待调试查看)
+                    // 如果符合我们passthroughDataflow名单中的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
                     Set<Integer> passthrough = passthroughDataflow.get(new MethodReference.Handle(owner, name, desc));
                     if (passthrough != null && passthrough.size() > 0) {
                         for (Integer passthroughDataflowArg : passthrough) {
                             resultTaint.addAll(argTaint.get(new Integer(passthroughDataflowArg)));
                         }
                     }
+
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + opcode);
@@ -421,8 +402,9 @@ public class PassthroughDiscovery {
 
             super.visitMethodInsn(opcode, owner, name, desc, itf);
             if (retSize > 0) {
-                operandStack.get(retSize - 1).addAll(resultTaint);
+                 operandStack.get(retSize - 1).addAll(resultTaint);
             }
+
         }
     }
 
