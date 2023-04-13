@@ -29,6 +29,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
 
     // 使用白名单的方式去匹配 能外界输入的类及其方法
     private static final Object[][] PASSTHROUGH_DATAFLOW;
+    private static final Object[][] blackMethod;
 
     // todo 将此白名单导出到一个文件中,使用fileUtils去读取,方便于扩展
     static {
@@ -113,9 +114,15 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 {"javax/servlet/http/HttpServletRequest", "getInputStream", "()Ljavax/servlet/ServletInputStream;", 0},
 
                 {"java/lang/ProcessBuilder", "command", "([Ljava/lang/String;)Ljava/lang/ProcessBuilder;", 1},
-                {"java/lang/ProcessBuilder", "<init>", "([Ljava/lang/String;)V", 1}
+
+        };
+        blackMethod = new Object[][]{
+                //{"java/lang/ProcessBuilder", "command", "([Ljava/lang/String;)Ljava/lang/ProcessBuilder;", 1}
         };
     }
+
+    // dup强引用
+    DupStrongConnection dupStrongConnection = new DupStrongConnection();
 
     public CoreMethodAdapter(final int api, final MethodVisitor mv, final String owner, int access,
                              String name, String desc, String signature, String[] exceptions) {
@@ -217,6 +224,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitCode() {
+        dupStrongConnection.isAffectBody = false;
+        dupStrongConnection.indexOfCopy = -1;
+        dupStrongConnection.indexOfBody = -1;
+
         super.visitCode();
         localVariables.clear();
         operandStack.clear();
@@ -349,6 +360,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 break;
             case Opcodes.DUP:
                 operandStack.push(operandStack.get(0));
+                //operandStack.push(localVariables.get(1));
+
+                dupStrongConnection.indexOfBody = 0;
+                dupStrongConnection.indexOfCopy = 1;
                 break;
             case Opcodes.DUP_X1:
                 saved0 = operandStack.pop();
@@ -611,7 +626,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitVarInsn(int opcode, int var) {
-        CoreMethodAdapter.token = stringUtils.getRandomString(8);
+        //CoreMethodAdapter.token = stringUtils.getRandomString(8);
 
         for (int i = localVariables.size(); i <= var; i++) {
             localVariables.add(new HashSet<>());
@@ -628,6 +643,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.push();
                 break;
             case Opcodes.ALOAD:
+                // todo 待解决！
                 operandStack.push(localVariables.get(var));
                 break;
             case Opcodes.ISTORE:
@@ -646,6 +662,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 //setTokenWithVar(var);
                 break;
             case Opcodes.ASTORE:
+
                 saved0 = operandStack.pop();
                 localVariables.set(var, saved0);
 
@@ -747,8 +764,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-        // body : class本体
-        Set<Integer> body;
+//        if ((owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;"))) {
+//            System.out.println("hack!");
+//        }
 
         // 获取method的参数类型
         Type[] argTypes = getMethodType(opcode, owner, name, desc, itf);
@@ -763,11 +781,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 if ((owner.equals("java/lang/ProcessBuilder") && name.equals("<init>") && desc.equals("([Ljava/lang/String;)V"))) {
                     System.out.println("hack!");
                 }
+
                 final List<Set<T>> argTaint = new ArrayList<>(argTypes.length);
                 for (int i = 0; i < argTypes.length; i++) {
                     argTaint.add(null);
                 }
-
                 for (int i = 0; i < argTypes.length; i++) {
                     Type argType = argTypes[i];
                     if (argType.getSize() > 0) {
@@ -832,9 +850,23 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         if (retSize == 0 && operandStack.size() > 0 && resultTaint != null && resultTaint.size() > 0) {
             operandStack.get(0).addAll(resultTaint);
         }
-//        if(retSize == 0 && operandStack.size() > 0){
-//            //operandStack.set(0,1);
+
+//        // [+] test
+//        // 如果符合 方法黑名单,则说明此函数出栈后能影响本体
+//        for (Object[] blackOption:blackMethod){
+//            if(blackOption[0].equals(owner) && blackOption[1].equals(name) && (blackOption[2].equals(desc) || blackOption[2].equals("*"))){
+//                dupStrongConnection.isAffectBody = true;
+//            }
 //        }
+//
+//        // 当复制体出栈且无返回值时,说明本体被改变了,就将 "本体在操作数栈中的index" push到操作数栈上
+//        if (operandStack.size() > 0 && dupStrongConnection.isAffectBody == true){
+//            Set<T> saved0 = new HashSet<>();
+//            saved0.add((T) (Integer)1);
+//            resultTaint.addAll(saved0);
+//            operandStack.get(0).addAll(resultTaint);
+//        }
+
         sanityCheck();
     }
 

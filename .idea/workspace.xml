@@ -18,8 +18,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="FxmlFile" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -143,6 +143,10 @@
       <workItem from="1680928397328" duration="2659000" />
       <workItem from="1680933344412" duration="10026000" />
       <workItem from="1680949545183" duration="12911000" />
+      <workItem from="1681025700949" duration="5185000" />
+      <workItem from="1681030939594" duration="1000" />
+      <workItem from="1681370920784" duration="7314000" />
+      <workItem from="1681384592835" duration="9057000" />
     </task>
     <servers />
   </component>
@@ -150,23 +154,9 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>341</line>
-          <option name="timeStamp" value="113" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/CoreMethodAdapter.java</url>
-          <line>763</line>
-          <option name="timeStamp" value="120" />
-        </line-breakpoint>
-        <line-breakpoint type="java-method">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>153</line>
-          <properties class="org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" method="setTaintInReturnValue">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="97" />
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/JVMMethodScan/InvokeVirtual.java</url>
+          <line>36</line>
+          <option name="timeStamp" value="164" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -174,6 +164,7 @@
       <configuration name="Application">
         <watch expression="resultTaint" language="JAVA" />
         <watch expression="argTaint" language="JAVA" />
+        <watch expression="operandStack" language="JAVA" />
       </configuration>
     </watches-manager>
   </component>

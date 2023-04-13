@@ -30,6 +30,14 @@ public class InvokeVirtual {
         //这个方法比较特殊，他的污点传递是从实体类传到入参的第一个参数中，所以这里要对他特殊处理
         boolean inputStream = owner.equals("java/io/InputStream") && name.equals("read") && desc.equals("([BII)I");
         boolean methodInvoke = owner.equals("java/lang/reflect/Method") && name.equals("invoke") && desc.equals("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+        boolean ProcessBuilderCommand = owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;");
+
+        boolean newInstance = owner.equals("java/lang/reflect/Constructor") && name.equals("newInstance") && desc.equals("([Ljava/lang/Object;)Ljava/lang/Object;");
+        if(newInstance){
+            System.out.println("hack");
+
+        }
+
         if (subString) {
             int k = 0;
             Set<Object> listAll = new HashSet<>();
@@ -48,7 +56,6 @@ public class InvokeVirtual {
             findEvilDataflowMethodVisitor.operandStack.get(0).addAll(listAll);
             return "void";
         }
-
 //      //这种情况不需要判断有没有攻击者可控的参数流入，下图告警的情况会在攻击者尝试通过字符串拼接等方式得到一个ProcessBuilder和Runtime才会产生的
         if (classCallMethod) {
             int k = 0;
@@ -123,7 +130,7 @@ public class InvokeVirtual {
                 return "void";
             }
         }
-        if (exec) {
+        if (exec || ProcessBuilderCommand || newInstance) {
             if (findEvilDataflowMethodVisitor.operandStack.get(0).size() > 0) {
                 Set<Integer> taints = new HashSet<>();
                 for (Object node : findEvilDataflowMethodVisitor.operandStack.get(0)) {
@@ -136,7 +143,15 @@ public class InvokeVirtual {
                         if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
                             if (!printEvilMessage.contains(1)) {
                                 printEvilMessage.add(1);
-                                String msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------Runtime.exec可受request控制，该文件为webshell!!!";
+                                String msg = null;
+                                if(exec){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------Runtime.exec 可受request控制，该文件为webshell!!!";
+                                }else if(ProcessBuilderCommand) {
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ProcessBuilder 可受request控制，该文件为webshell!!!";
+                                }
+                                else if(newInstance){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------newInstance 可受request控制，该文件可能为webshell!!!";
+                                }
                                 logger.info(msg);
                                 Constant.evilClass.add(classFileName);
                                 Constant.msgList.add(msg);
@@ -145,7 +160,11 @@ public class InvokeVirtual {
                     }
                 }
                 //将能够流入到Runtime.exec方法中的入参标记为污染点
-                toEvilTaint.put("Runtime", taints);
+                if(exec){
+                    toEvilTaint.put("Runtime", taints);
+                }else {
+                    toEvilTaint.put("ProcessBuilder", taints);
+                }
                 findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
                 return "void";
             }
@@ -168,7 +187,6 @@ public class InvokeVirtual {
             findEvilDataflowMethodVisitor.operandStack.get(0).addAll(taintList);
             return "void";
         }
-
         if (inputStream) {
             Type[] argumentTypes = Type.getArgumentTypes(desc);
             //operandStack.get(argumentTypes.length)表示取出实体类中的污点
@@ -183,7 +201,6 @@ public class InvokeVirtual {
                 }
             }
         }
-
         if (methodInvoke) {
             //表示取出method类实例上的污点
             Set<Integer> taints = argTaint.get(0);

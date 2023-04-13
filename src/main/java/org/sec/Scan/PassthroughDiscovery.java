@@ -347,6 +347,10 @@ public class PassthroughDiscovery {
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+//        if ((owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;"))) {
+//            System.out.println("hack!");
+//        }
+
             // 获取method参数类型
             Type[] methodArgTypes = getMethodType(opcode, owner, name, desc, itf);
 
@@ -402,7 +406,7 @@ public class PassthroughDiscovery {
 
             super.visitMethodInsn(opcode, owner, name, desc, itf);
             if (retSize > 0) {
-                 operandStack.get(retSize - 1).addAll(resultTaint);
+                operandStack.get(retSize - 1).addAll(resultTaint);
             }
 
         }

@@ -171,20 +171,15 @@ public class FindEvilDiscovery {
          */
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-            //printMethod(owner,name,desc);
+            if ((owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;"))) {
+                System.out.println("hack!");
+            }
 
-            // 1.获取 类名,方法名,方法的所有参数类型和返回类型,即 owner name desc
             // 1-1 通过 desc 获取 类名,即owner
             Type[] argTypes = Type.getArgumentTypes(desc);
-            // 1-2 获取 方法的所有参数类型和返回类型
-            // Type returnType = Type.getReturnType(desc); // 1-2-1 返回类型
-            String returnType = RegexUtils.getXXXContent("rightBrackets", desc); // 1-2-1 返回类型
-            String methodParamType = RegexUtils.getXXXContent("brackets", desc); // 1-2-2 方法参数类型
-            // 1-3 获取返回值类型大小
-            int retSize = Type.getReturnType(desc).getSize();
 
-            // 2.对返回值下污点,即对污点进行标记
-            // setTaintInReturnValue(returnType);
+            // 1-2 获取返回值类型大小
+            int retSize = Type.getReturnType(desc).getSize();
 
             Set<Integer> resultTaint;
             //非静态方法需要把实例类型放在第一个元素
