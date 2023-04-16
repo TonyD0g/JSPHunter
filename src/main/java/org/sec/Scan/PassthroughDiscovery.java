@@ -182,7 +182,7 @@ public class PassthroughDiscovery {
         Constant.passthroughDataflow = passthroughDataflow;
     }
 
-    private class PassthroughDataflowClassVisitor extends ClassVisitor {
+    public class PassthroughDataflowClassVisitor extends ClassVisitor {
         private PassthroughDataflowMethodVisitor passthroughDataflowMethodVisitor;
         private final Map<MethodReference.Handle, Set<Integer>> passthroughDataflow;
         private final MethodReference.Handle methodToVisit;
@@ -225,7 +225,7 @@ public class PassthroughDiscovery {
     /**
      * 污点分析的起始位置
      */
-    private class PassthroughDataflowMethodVisitor extends CoreMethodAdapter {
+    public class PassthroughDataflowMethodVisitor extends CoreMethodAdapter {
         private final Set<Integer> returnTaint;//被污染的返回数据
         private final Map<MethodReference.Handle, Set<Integer>> passthroughDataflow;
         private final int access;

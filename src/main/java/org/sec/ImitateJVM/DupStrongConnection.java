@@ -1,5 +1,6 @@
 package org.sec.ImitateJVM;
 
+// [-] 没用,待删除
 /** dup强引用 */
 public class DupStrongConnection {
 

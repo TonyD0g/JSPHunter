@@ -3,8 +3,11 @@ package org.sec.ImitateJVM;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
+//import org.sec.Scan.HandleAnonymousClass;
+import org.sec.Scan.PassthroughDiscovery;
 import org.sec.utils.stringUtils;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -12,6 +15,7 @@ import java.util.*;
  */
 @SuppressWarnings("all")
 public class CoreMethodAdapter<T> extends MethodVisitor {
+    public static boolean isTest = false;
     public static String token = "";
     private static final Logger logger = Logger.getLogger(CoreMethodAdapter.class);
     private final AnalyzerAdapter analyzerAdapter;
@@ -360,7 +364,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 break;
             case Opcodes.DUP:
                 operandStack.push(operandStack.get(0));
-                //operandStack.push(localVariables.get(1));
 
                 dupStrongConnection.indexOfBody = 0;
                 dupStrongConnection.indexOfCopy = 1;
@@ -626,8 +629,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitVarInsn(int opcode, int var) {
-        //CoreMethodAdapter.token = stringUtils.getRandomString(8);
-
         for (int i = localVariables.size(); i <= var; i++) {
             localVariables.add(new HashSet<>());
         }
@@ -643,26 +644,20 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.push();
                 break;
             case Opcodes.ALOAD:
-                // todo 待解决！
                 operandStack.push(localVariables.get(var));
                 break;
             case Opcodes.ISTORE:
             case Opcodes.FSTORE:
                 operandStack.pop();
                 localVariables.set(var, new HashSet<>());
-
-                //setTokenWithVar(var);
                 break;
             case Opcodes.DSTORE:
             case Opcodes.LSTORE:
                 operandStack.pop();
                 operandStack.pop();
                 localVariables.set(var, new HashSet<>());
-
-                //setTokenWithVar(var);
                 break;
             case Opcodes.ASTORE:
-
                 saved0 = operandStack.pop();
                 localVariables.set(var, saved0);
 
@@ -760,13 +755,109 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
     }
 
     /**
+     * 处理匿名内部类
+     */
+    public void handleAnonymousClass(CoreMethodAdapter coreMethodAdapter, String owner, Type[] argTypes, List<Set<T>> argTaint) {
+        isTest = false;
+        // 统计函数的arg的总大小
+        int totalSizeOfArg = 0;
+        for (int i = 0; i < argTypes.length; i++) {
+            Type argType = argTypes[i];
+            if (argType.getSize() > 0) {
+                totalSizeOfArg = argType.getSize() + totalSizeOfArg;
+            }
+        }
+
+        // 1.处理非正常情况
+        int counter = 0;
+        if ((coreMethodAdapter.operandStack.size() <= totalSizeOfArg)) {
+            try {
+                List<Object> list2 = new ArrayList<>();
+                Class cls = Class.forName("org.objectweb.asm.commons.AnalyzerAdapter");
+                Field stack = cls.getDeclaredField("stack");
+                stack.setAccessible(true);
+
+                // 第一种情况: 匿名内部类
+                if (coreMethodAdapter.operandStack.size() < totalSizeOfArg) {
+                    // 将set中的所有项全部封装为set(例如 set0{1,2,3} => set1,set2,set3 )
+                    int stackSize = operandStack.size();
+                    for (int i = 0; i <= stackSize - 1; i++) {
+                        // 如果存在值,才进行相应操作
+                        Set test = coreMethodAdapter.operandStack.get(i);
+                        List<T> list = new ArrayList<T>(test);
+                        for (int top = test.size() - 1; top >= 0; top--) {
+                            // 获取 此set中的某一项(从高到低),并赋值给 value
+                            T value = list.get(top);
+                            if (!value.equals("")) {
+                                // value再重新封装为一个新set,并传给 argTaint
+                                Set subSetItem = new HashSet();
+                                subSetItem.add(value);
+                                argTaint.set(argTypes.length - 1 - counter, subSetItem);
+                            }
+                            counter++;
+                        }
+                    }
+
+                    for (int i = 0; i <= coreMethodAdapter.operandStack.size() - 1; i++) {
+                        coreMethodAdapter.operandStack.pop();
+                    }
+                    //coreMethodAdapter.operandStack.push();
+
+                    list2.add(owner);
+                    List tmpList = (List) stack.get(coreMethodAdapter.mv);
+                    String tmpString = (String) tmpList.get(0);
+                    list2.add(tmpString);
+                    stack.set(coreMethodAdapter.mv, list2);
+                } else {
+                    //第二种情况: operandStack.size() == totalSizeOfArg,根据每个参数的大小进行相应的弹栈
+                    for (int i = 0; i < argTypes.length; i++) {
+                        Type argType = argTypes[i];
+                        if (argType.getSize() > 0) {
+                            // 弹栈的目的是模拟 执行方法
+                            for (int j = 0; j < argType.getSize() - 1; j++) {
+                                operandStack.pop();
+                                //totalSizeOfArg = totalSizeOfArg - argType.getSize();
+                            }
+                            // 记录方法参数
+                            argTaint.set(argTypes.length - 1 - i, operandStack.pop());
+                        }
+                    }
+                    //operandStack.push();
+                    isTest = true;
+                }
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+        // 2.处理正常情况
+            for (int i = 0; i < argTypes.length; i++) {
+                Type argType = argTypes[i];
+                if (argType.getSize() > 0) {
+
+                    // 弹栈的目的是模拟 执行方法
+                    for (int j = 0; j < argType.getSize() - 1; j++) {
+                        operandStack.pop();
+                        //totalSizeOfArg = totalSizeOfArg - argType.getSize();
+                    }
+                    // 记录方法参数
+                    argTaint.set(argTypes.length - 1 - i, operandStack.pop());
+                }
+            }
+        }
+    }
+
+    /**
      * 对方法调用中的参数进行污点分析
      */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-//        if ((owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;"))) {
-//            System.out.println("hack!");
-//        }
+        if ((owner.equals("java/lang/StringBuilder") && name.equals("append") && desc.equals("(Ljava/lang/String;)Ljava/lang/StringBuilder;"))) {
+            System.out.println("sb");
+        }
 
         // 获取method的参数类型
         Type[] argTypes = getMethodType(opcode, owner, name, desc, itf);
@@ -778,25 +869,16 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.INVOKEVIRTUAL:
             case Opcodes.INVOKESPECIAL:
             case Opcodes.INVOKEINTERFACE:
-                if ((owner.equals("java/lang/ProcessBuilder") && name.equals("<init>") && desc.equals("([Ljava/lang/String;)V"))) {
-                    System.out.println("hack!");
-                }
-
                 final List<Set<T>> argTaint = new ArrayList<>(argTypes.length);
                 for (int i = 0; i < argTypes.length; i++) {
                     argTaint.add(null);
                 }
-                for (int i = 0; i < argTypes.length; i++) {
-                    Type argType = argTypes[i];
-                    if (argType.getSize() > 0) {
-                        // 弹栈的目的是模拟 执行方法
-                        for (int j = 0; j < argType.getSize() - 1; j++) {
-                            operandStack.pop();
-                        }
-                        // 记录方法参数
-                        argTaint.set(argTypes.length - 1 - i, operandStack.pop());
-                    }
-                }
+
+                Type argType;
+                // 处理匿名内部类
+                handleAnonymousClass(this, owner, argTypes, argTaint);
+
+                // []
                 if (name.equals("<init>")) {
                     resultTaint = argTaint.get(0);
                 } else {
@@ -815,7 +897,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                         break;
                     }
                 }
-                // || (owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;"))
                 // 处理list.add这个特殊情况
                 if ((owner.equals("java/util/List") && name.equals("add") && desc.equals("(Ljava/lang/Object;)Z"))) {
                     // TODO 解决 "继承list" 的绕过
@@ -845,28 +926,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         super.visitMethodInsn(opcode, owner, name, desc, itf);
 
         //处理当return new String(evilCode)这种情况，构造方法返回值为retSize为0，但其实他可以污染 上层函数(所有方法参数出栈后的栈顶)
-
-        // ? 加个 dup标记,如果有operandStack.get(0) 存在dup标记,则污染 被dup标记的operandStack.index(标号)
         if (retSize == 0 && operandStack.size() > 0 && resultTaint != null && resultTaint.size() > 0) {
             operandStack.get(0).addAll(resultTaint);
         }
-
-//        // [+] test
-//        // 如果符合 方法黑名单,则说明此函数出栈后能影响本体
-//        for (Object[] blackOption:blackMethod){
-//            if(blackOption[0].equals(owner) && blackOption[1].equals(name) && (blackOption[2].equals(desc) || blackOption[2].equals("*"))){
-//                dupStrongConnection.isAffectBody = true;
-//            }
-//        }
-//
-//        // 当复制体出栈且无返回值时,说明本体被改变了,就将 "本体在操作数栈中的index" push到操作数栈上
-//        if (operandStack.size() > 0 && dupStrongConnection.isAffectBody == true){
-//            Set<T> saved0 = new HashSet<>();
-//            saved0.add((T) (Integer)1);
-//            resultTaint.addAll(saved0);
-//            operandStack.get(0).addAll(resultTaint);
-//        }
-
         sanityCheck();
     }
 

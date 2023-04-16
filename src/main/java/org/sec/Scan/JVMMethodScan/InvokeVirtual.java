@@ -31,12 +31,7 @@ public class InvokeVirtual {
         boolean inputStream = owner.equals("java/io/InputStream") && name.equals("read") && desc.equals("([BII)I");
         boolean methodInvoke = owner.equals("java/lang/reflect/Method") && name.equals("invoke") && desc.equals("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
         boolean ProcessBuilderCommand = owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;");
-
         boolean newInstance = owner.equals("java/lang/reflect/Constructor") && name.equals("newInstance") && desc.equals("([Ljava/lang/Object;)Ljava/lang/Object;");
-        if(newInstance){
-            System.out.println("hack");
-
-        }
 
         if (subString) {
             int k = 0;

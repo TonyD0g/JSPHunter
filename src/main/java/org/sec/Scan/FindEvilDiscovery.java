@@ -11,6 +11,7 @@ import org.sec.ImitateJVM.CoreMethodAdapter;
 import org.sec.Scan.JVMMethodScan.*;
 import org.sec.utils.RegexUtils;
 import org.sec.utils.stringUtils;
+
 import java.util.ArrayList;
 
 import java.lang.reflect.Method;
@@ -159,7 +160,7 @@ public class FindEvilDiscovery {
                 // 创建形如 returnType returnObject = new returnType(); 的伪代码,将 returnObject 用于污点传递
                 String[] realReturnTypeList = stringUtils.hanleFieldType(returnType);
                 Class clazz = getClassForName(realReturnTypeList[realReturnTypeList.length - 1]);
-                Object returnObject =  clazz.newInstance();
+                Object returnObject = clazz.newInstance();
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -295,7 +296,7 @@ public class FindEvilDiscovery {
                 boolean stringInit = owner.equals("java/lang/String") && name.equals("<init>");
                 boolean stringBuilderInit = owner.equals("java/lang/StringBuilder") && name.equals("<init>") && desc.equals("(Ljava/lang/String;)V");
                 boolean defineClass = owner.equals("java/lang/ClassLoader") && name.equals("defineClass");
-                if (stringByteInit) {
+                if (stringByteInit && operandStack.size() > 0) {
                     Set taintList = operandStack.get(0);
                     for (Object taint : operandStack.get(0)) {
                         //获取Opcodes.BIPUSH存放进来的byte数组然后还原原貌，主应对new String(byte[])这种情况，把byte[]还原成String进行污点传递
@@ -311,7 +312,11 @@ public class FindEvilDiscovery {
                         }
                         //如果不包含arrayList的byte数组，那么就正常传递污点
                         super.visitMethodInsn(opcode, owner, name, desc, itf);
+                        if (CoreMethodAdapter.isTest) {
+                            operandStack.push();
+                        }
                         operandStack.get(0).addAll(taintList);
+
                         return;
                     }
                 }

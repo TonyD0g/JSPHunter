@@ -146,25 +146,29 @@
       <workItem from="1681025700949" duration="5185000" />
       <workItem from="1681030939594" duration="1000" />
       <workItem from="1681370920784" duration="7314000" />
-      <workItem from="1681384592835" duration="9057000" />
+      <workItem from="1681384592835" duration="9405000" />
+      <workItem from="1681394327121" duration="347000" />
+      <workItem from="1681431126335" duration="2975000" />
+      <workItem from="1681434275148" duration="365000" />
+      <workItem from="1681434838061" duration="5000" />
+      <workItem from="1681459079674" duration="188000" />
+      <workItem from="1681521878021" duration="3311000" />
+      <workItem from="1681538649459" duration="4888000" />
+      <workItem from="1681544372919" duration="8686000" />
+      <workItem from="1681605356307" duration="16075000" />
+      <workItem from="1681627465241" duration="8218000" />
     </task>
     <servers />
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/JVMMethodScan/InvokeVirtual.java</url>
-          <line>36</line>
-          <option name="timeStamp" value="164" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
     <watches-manager>
       <configuration name="Application">
-        <watch expression="resultTaint" language="JAVA" />
-        <watch expression="argTaint" language="JAVA" />
         <watch expression="operandStack" language="JAVA" />
+        <watch expression="argTypes.length" language="JAVA" />
+        <watch expression="argTaint" language="JAVA" />
+        <watch expression="resultTaint" language="JAVA" />
+        <watch expression="((AnalyzerAdapter)this).stack" language="JAVA" custom="org.objectweb.asm.commons.AnalyzerAdapter" />
+        <watch expression="((AnalyzerAdapter)((FindEvilDataflowMethodVisitor)this).mv).stack" custom="org.objectweb.asm.commons.AnalyzerAdapter,org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" />
       </configuration>
     </watches-manager>
   </component>
