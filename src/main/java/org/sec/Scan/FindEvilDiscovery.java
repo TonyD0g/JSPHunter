@@ -8,11 +8,9 @@ import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.sec.Constant.Constant;
 import org.sec.Data.MethodReference;
 import org.sec.ImitateJVM.CoreMethodAdapter;
-import org.sec.Scan.JVMMethodScan.*;
-import org.sec.utils.RegexUtils;
+import org.sec.Scan.JVMMethodScan.InvokeInterface;
+import org.sec.Scan.JVMMethodScan.InvokeVirtual;
 import org.sec.utils.stringUtils;
-
-import java.util.ArrayList;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -172,10 +170,6 @@ public class FindEvilDiscovery {
          */
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-            if ((owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;"))) {
-                System.out.println("hack!");
-            }
-
             // 1-1 通过 desc 获取 类名,即owner
             Type[] argTypes = Type.getArgumentTypes(desc);
 
@@ -296,7 +290,7 @@ public class FindEvilDiscovery {
                 boolean stringInit = owner.equals("java/lang/String") && name.equals("<init>");
                 boolean stringBuilderInit = owner.equals("java/lang/StringBuilder") && name.equals("<init>") && desc.equals("(Ljava/lang/String;)V");
                 boolean defineClass = owner.equals("java/lang/ClassLoader") && name.equals("defineClass");
-                if (stringByteInit && operandStack.size() > 0) {
+                if (stringByteInit) {
                     Set taintList = operandStack.get(0);
                     for (Object taint : operandStack.get(0)) {
                         //获取Opcodes.BIPUSH存放进来的byte数组然后还原原貌，主应对new String(byte[])这种情况，把byte[]还原成String进行污点传递
@@ -313,9 +307,13 @@ public class FindEvilDiscovery {
                         //如果不包含arrayList的byte数组，那么就正常传递污点
                         super.visitMethodInsn(opcode, owner, name, desc, itf);
                         if (CoreMethodAdapter.isTest) {
-                            operandStack.push();
+                            // 说明 此时的operandStack为空,那如何向上传递呢?
+//                            operandStack.push();
+//                            operandStack.get(0).addAll(taintList);
                         }
-                        operandStack.get(0).addAll(taintList);
+                        else{
+                            operandStack.get(0).addAll(taintList);
+                        }
 
                         return;
                     }
@@ -404,7 +402,9 @@ public class FindEvilDiscovery {
             }
             if (opcode == Opcodes.INVOKESTATIC) {
                 boolean isValueOf = name.equals("valueOf") && desc.equals("(Ljava/lang/Object;)Ljava/lang/String;") && owner.equals("java/lang/String");
-                if (isValueOf && operandStack.get(0).size() > 0) {
+                boolean isGetDecoder = owner.equals("java/util/Base64") &&  name.equals("getDecoder") && desc.equals("()Ljava/util/Base64$Decoder;");
+                // || isGetDecoder
+                if ((isValueOf )  && operandStack.get(0).size() > 0) {
                     Set taintList = operandStack.get(0);
                     super.visitMethodInsn(opcode, owner, name, desc, itf);
                     operandStack.get(0).addAll(taintList);

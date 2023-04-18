@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 //import org.sec.Scan.HandleAnonymousClass;
-import org.sec.Scan.PassthroughDiscovery;
 import org.sec.utils.stringUtils;
 
 import java.lang.reflect.Field;
@@ -33,7 +32,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
 
     // 使用白名单的方式去匹配 能外界输入的类及其方法
     private static final Object[][] PASSTHROUGH_DATAFLOW;
-    private static final Object[][] blackMethod;
 
     // todo 将此白名单导出到一个文件中,使用fileUtils去读取,方便于扩展
     static {
@@ -94,6 +92,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 {"sun/misc/BASE64Decoder", "decodeBuffer", "*", 1},
                 {"sun/misc/BASE64Decoder", "decodeBufferToByteBuffer", "*", 1},
                 {"java/util/Base64$Decoder", "decode", "*", 1},
+
                 {"java/lang/Class", "getDeclaredMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;", 0, 1},
                 {"java/lang/Class", "getDeclaredMethods", "()[Ljava/lang/reflect/Method;", 0},
                 {"java/lang/Class", "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;", 0},
@@ -120,13 +119,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 {"java/lang/ProcessBuilder", "command", "([Ljava/lang/String;)Ljava/lang/ProcessBuilder;", 1},
 
         };
-        blackMethod = new Object[][]{
-                //{"java/lang/ProcessBuilder", "command", "([Ljava/lang/String;)Ljava/lang/ProcessBuilder;", 1}
-        };
     }
 
     // dup强引用
-    DupStrongConnection dupStrongConnection = new DupStrongConnection();
+    DebugOption debugOption = new DebugOption();
 
     public CoreMethodAdapter(final int api, final MethodVisitor mv, final String owner, int access,
                              String name, String desc, String signature, String[] exceptions) {
@@ -228,9 +224,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitCode() {
-        dupStrongConnection.isAffectBody = false;
-        dupStrongConnection.indexOfCopy = -1;
-        dupStrongConnection.indexOfBody = -1;
+        debugOption.debug = true;
+        debugOption.clearSet();
 
         super.visitCode();
         localVariables.clear();
@@ -313,6 +308,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.FCONST_1:
             case Opcodes.FCONST_2:
                 operandStack.push();
+                debugOption.setDebug(opcode);
+
                 break;
             case Opcodes.LCONST_0:
             case Opcodes.LCONST_1:
@@ -320,6 +317,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.DCONST_1:
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.IALOAD:
             case Opcodes.FALOAD:
@@ -330,6 +329,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.LALOAD:
             case Opcodes.DALOAD:
@@ -337,6 +337,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.IASTORE:
             case Opcodes.FASTORE:
@@ -364,9 +366,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 break;
             case Opcodes.DUP:
                 operandStack.push(operandStack.get(0));
-
-                dupStrongConnection.indexOfBody = 0;
-                dupStrongConnection.indexOfCopy = 1;
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP_X1:
                 saved0 = operandStack.pop();
@@ -374,6 +374,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.push(saved0);
                 operandStack.push(saved1);
                 operandStack.push(saved0);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP_X2:
                 saved0 = operandStack.pop();
@@ -383,10 +386,16 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.push(saved2);
                 operandStack.push(saved1);
                 operandStack.push(saved0);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP2:
                 operandStack.push(operandStack.get(1));
                 operandStack.push(operandStack.get(1));
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP2_X1:
                 saved0 = operandStack.pop();
@@ -397,6 +406,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.push(saved2);
                 operandStack.push(saved1);
                 operandStack.push(saved0);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP2_X2:
                 saved0 = operandStack.pop();
@@ -409,12 +423,19 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.push(saved2);
                 operandStack.push(saved1);
                 operandStack.push(saved0);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.SWAP:
                 saved0 = operandStack.pop();
                 saved1 = operandStack.pop();
                 operandStack.push(saved0);
                 operandStack.push(saved1);
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.IADD:
             case Opcodes.FADD:
@@ -429,6 +450,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.LADD:
             case Opcodes.DADD:
@@ -446,11 +468,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.INEG:
             case Opcodes.FNEG:
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.LNEG:
             case Opcodes.DNEG:
@@ -458,6 +483,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.ISHL:
             case Opcodes.ISHR:
@@ -465,6 +492,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.LSHL:
             case Opcodes.LSHR:
@@ -474,6 +502,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.IAND:
             case Opcodes.IOR:
@@ -481,6 +511,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.LAND:
             case Opcodes.LOR:
@@ -491,6 +522,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.I2B:
             case Opcodes.I2C:
@@ -498,18 +531,22 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.I2F:
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.I2L:
             case Opcodes.I2D:
                 operandStack.pop();
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.L2I:
             case Opcodes.L2F:
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.D2L:
             case Opcodes.L2D:
@@ -517,22 +554,28 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.F2I:
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.F2L:
             case Opcodes.F2D:
                 operandStack.pop();
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.D2I:
             case Opcodes.D2F:
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.LCMP:
                 operandStack.pop();
@@ -540,12 +583,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.FCMPL:
             case Opcodes.FCMPG:
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.DCMPL:
             case Opcodes.DCMPG:
@@ -554,6 +599,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.IRETURN:
             case Opcodes.FRETURN:
@@ -570,6 +616,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.ARRAYLENGTH:
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.ATHROW:
                 operandStack.pop();
@@ -594,10 +641,12 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.BIPUSH:
             case Opcodes.SIPUSH:
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.NEWARRAY:
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             default:
                 throw new IllegalStateException("unsupported opcode: " + opcode);
@@ -637,14 +686,18 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.ILOAD:
             case Opcodes.FLOAD:
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.LLOAD:
             case Opcodes.DLOAD:
                 operandStack.push();
                 operandStack.push();
+                debugOption.setDebug(opcode);
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.ALOAD:
                 operandStack.push(localVariables.get(var));
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.ISTORE:
             case Opcodes.FSTORE:
@@ -686,16 +739,19 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         switch (opcode) {
             case Opcodes.NEW:
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.ANEWARRAY:
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             case Opcodes.CHECKCAST:
                 break;
             case Opcodes.INSTANCEOF:
                 operandStack.pop();
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 break;
             default:
                 throw new IllegalStateException("unsupported opcode: " + opcode);
@@ -714,6 +770,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.GETSTATIC:
                 for (int i = 0; i < typeSize; i++) {
                     operandStack.push();
+                    debugOption.setDebug(opcode);
                 }
                 break;
             case Opcodes.PUTSTATIC:
@@ -725,6 +782,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 operandStack.pop();
                 for (int i = 0; i < typeSize; i++) {
                     operandStack.push();
+                    debugOption.setDebug(opcode);
                 }
                 break;
             case Opcodes.PUTFIELD:
@@ -801,7 +859,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     for (int i = 0; i <= coreMethodAdapter.operandStack.size() - 1; i++) {
                         coreMethodAdapter.operandStack.pop();
                     }
-                    //coreMethodAdapter.operandStack.push();
 
                     list2.add(owner);
                     List tmpList = (List) stack.get(coreMethodAdapter.mv);
@@ -822,7 +879,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                             argTaint.set(argTypes.length - 1 - i, operandStack.pop());
                         }
                     }
-                    //operandStack.push();
                     isTest = true;
                 }
             } catch (ClassNotFoundException e) {
@@ -841,22 +897,26 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     // 弹栈的目的是模拟 执行方法
                     for (int j = 0; j < argType.getSize() - 1; j++) {
                         operandStack.pop();
-                        //totalSizeOfArg = totalSizeOfArg - argType.getSize();
                     }
                     // 记录方法参数
                     argTaint.set(argTypes.length - 1 - i, operandStack.pop());
                 }
             }
         }
+
     }
 
     /**
      * 对方法调用中的参数进行污点分析
      */
     @Override
-    public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-        if ((owner.equals("java/lang/StringBuilder") && name.equals("append") && desc.equals("(Ljava/lang/String;)Ljava/lang/StringBuilder;"))) {
-            System.out.println("sb");
+    public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf)
+    {
+        if (owner.equals("java/lang/String") &&  name.equals("<init>") && desc.equals("(Ljava/lang/String;)V")) {
+//            System.out.println("sb");
+//            System.out.println(analyzerAdapter.stack.size());
+            debugOption.setOwner(owner,name,desc);
+            debugOption.printDebug();
         }
 
         // 获取method的参数类型
@@ -885,13 +945,22 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     resultTaint = new HashSet<>();
                 }
 
-
                 // todo 3 在名单内的方法的调用，已预置哪个参数可以污染返回值 (?)
                 // 白名单匹配 污点源
                 for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
                     // 如果符合我们的白名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
                     if (passthrough[0].equals(owner) && passthrough[1].equals(name) && (passthrough[2].equals(desc) || passthrough[2].equals("*"))) {
                         for (int i = 3; i < passthrough.length; i++) {
+                            // test 处理特殊情况
+//                            Integer integer1 = (Integer) passthrough[i];
+//                            Integer integer2 = -1;
+//                            if(i == 3 && integer1 == integer2){
+//                                Set test1 = new HashSet();
+//                                test1.add((Integer) 1);
+//                                resultTaint.addAll(test1);
+//                            }else {
+//                                resultTaint.addAll(argTaint.get((Integer) passthrough[i]));
+//                            }
                             resultTaint.addAll(argTaint.get((Integer) passthrough[i]));
                         }
                         break;
@@ -915,8 +984,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     // 为什么返回值大于0就要将resultTaint压入操作数栈呢? 因为:为了让上层函数去污点分析
                     // 否则如果是没有返回值的话,那根本不用把 resultTaint 向上传递,说明此函数根本就是摆设
                     operandStack.push(resultTaint);
+                    debugOption.setDebug(opcode);
                     for (int i = 1; i < retSize; i++) {
                         operandStack.push();
+                        debugOption.setDebug(opcode);
                     }
                 }
                 break;
@@ -930,6 +1001,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             operandStack.get(0).addAll(resultTaint);
         }
         sanityCheck();
+        debugOption.clearSet();
     }
 
     /**
@@ -948,6 +1020,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         }
         for (int i = 0; i < retSize; i++) {
             operandStack.push();
+
         }
         super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
         sanityCheck();
@@ -984,6 +1057,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 break;
             case Opcodes.JSR:
                 operandStack.push();
+                debugOption.setDebug(opcode);
                 super.visitJumpInsn(opcode, label);
                 return;
             default:
@@ -1019,11 +1093,13 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         }
         if (exceptionHandlerLabels.contains(label)) {
             operandStack.push(new HashSet<>());
+
         }
         super.visitLabel(label);
         sanityCheck();
     }
 
+    // TODO 存在问题?
     /**
      * 对载入字符串进行相应处理
      */

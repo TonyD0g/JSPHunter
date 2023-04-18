@@ -27,10 +27,10 @@
     <setting file="jar://$MAVEN_REPOSITORY$/org/apache/tomcat/tomcat-jasper/8.5.81/tomcat-jasper-8.5.81-sources.jar!/org/apache/jasper/JspC.java" root0="SKIP_INSPECTION" />
   </component>
   <component name="MavenImportPreferences">
-    <option name="importingSettings">
-      <MavenImportingSettings>
-        <option name="workspaceImportEnabled" value="true" />
-      </MavenImportingSettings>
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="useMavenConfig" value="true" />
+      </MavenGeneralSettings>
     </option>
   </component>
   <component name="ProblemsViewState">
@@ -41,18 +41,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;extract.method.default.visibility&quot;: &quot;private&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Coding/JSPHunter&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;库&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propDebugger&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "TODO_SCOPE": "所有位置",
+    "extract.method.default.visibility": "private",
+    "last_opened_file_path": "D:/Coding/JSPHunter",
+    "project.structure.last.edited": "项目",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
@@ -157,10 +158,40 @@
       <workItem from="1681544372919" duration="8686000" />
       <workItem from="1681605356307" duration="16075000" />
       <workItem from="1681627465241" duration="8218000" />
+      <workItem from="1681637617788" duration="765000" />
+      <workItem from="1681654117927" duration="2832000" />
+      <workItem from="1681689988954" duration="4043000" />
+      <workItem from="1681695847146" duration="3779000" />
+      <workItem from="1681700761921" duration="1027000" />
+      <workItem from="1681701802016" duration="906000" />
+      <workItem from="1681721097343" duration="242000" />
+      <workItem from="1681722768474" duration="142000" />
+      <workItem from="1681722920420" duration="7000" />
+      <workItem from="1681723001376" duration="165000" />
+      <workItem from="1681723177745" duration="20000" />
+      <workItem from="1681723268826" duration="8000" />
+      <workItem from="1681733289019" duration="6000" />
+      <workItem from="1681733728392" duration="7594000" />
+      <workItem from="1681775055213" duration="2784000" />
+      <workItem from="1681781863159" duration="3860000" />
     </task>
     <servers />
   </component>
   <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
+          <line>307</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
+          <line>334</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
     <watches-manager>
       <configuration name="Application">
         <watch expression="operandStack" language="JAVA" />
@@ -169,6 +200,8 @@
         <watch expression="resultTaint" language="JAVA" />
         <watch expression="((AnalyzerAdapter)this).stack" language="JAVA" custom="org.objectweb.asm.commons.AnalyzerAdapter" />
         <watch expression="((AnalyzerAdapter)((FindEvilDataflowMethodVisitor)this).mv).stack" custom="org.objectweb.asm.commons.AnalyzerAdapter,org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" />
+        <watch expression="owner" />
+        <watch expression="desc" />
       </configuration>
     </watches-manager>
   </component>
