@@ -25,6 +25,7 @@
 - 能检测 newInstance 的绕过
 - 能检测 匿名内部类 的绕过
 - 能检测 Proxy的native方法defineClass0加载类字节码 的绕过
+- 优化检测算法,实现少报错
 ```
 
 # TODO
@@ -45,7 +46,7 @@ https://github.com/threedr3am/JSP-WebShells
 - JSPKiler: 待测
 
 - JSPFinder:  4/29 ,  13%
-- JSPHunter: 11/29 , 37%
+- JSPHunter: 15/29 , 51%
 
 **目前正在优化检测逻辑,使检测率提高**
 

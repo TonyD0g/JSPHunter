@@ -348,7 +348,7 @@ public class PassthroughDiscovery {
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
             if (owner.equals("java/util/Base64$Decoder") &&  name.equals("decode") && desc.equals("(Ljava/lang/String;)[B")) {
-                System.out.println("sb");
+               // System.out.println("sb");
                // System.out.println(analyzerAdapter.stack.size());
             }
             // 获取method参数类型

@@ -1,18 +1,16 @@
 package org.sec.Scan;
 
-import com.github.houbb.asm.tool.reflection.AsmMethods;
-import com.github.houbb.heaven.util.lang.reflect.ClassUtil;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
 import org.sec.Constant.Constant;
 import org.sec.Data.MethodReference;
+import org.sec.ImitateJVM.ChangeAsmVar;
 import org.sec.ImitateJVM.CoreMethodAdapter;
 import org.sec.Scan.JVMMethodScan.InvokeInterface;
 import org.sec.Scan.JVMMethodScan.InvokeVirtual;
-import org.sec.utils.stringUtils;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -81,7 +79,6 @@ public class FindEvilDiscovery {
         }
     }
 
-    // TODO 重点关注!!!
     public class FindEvilDataflowMethodVisitor extends CoreMethodAdapter {
         private final Map<String, Set<Integer>> toEvilTaint;//被污染的返回数据,key的值为恶意类的类型，比如:Runtime/ProcessBuilder/Behinder
         public Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow;
@@ -127,44 +124,6 @@ public class FindEvilDiscovery {
             }
         }
 
-        public void printMethod(String owner, String name, String desc) {
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            System.out.println("[~] The owner: " + owner + " The name: " + name + " The desc: " + desc);
-            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-        }
-
-        /**
-         * 获取类中方法的所有参数
-         */
-        public void getTheAllParamNameOfMethod(Class clazz, String methodName, Class... paramTypes) {
-            Method method = ClassUtil.getMethod(clazz, methodName, paramTypes);
-            List<String> param = AsmMethods.getParamNamesByAsm(method);
-            System.out.println("[name]" + param.toString());
-        }
-
-        /**
-         * 根据name反射获取Clazz
-         */
-        public Class getClassForName(String ClassName) throws ClassNotFoundException {
-            return Class.forName(ClassName);
-        }
-
-        // todo 2.对返回值下污点,即对污点进行标记
-        public void setTaintInReturnValue(String returnType) {
-            // 第一种情况: 返回值只有一个
-            // HashMap<,Object> taintCollection = new HashMap<>();
-
-            try {
-                // 创建形如 returnType returnObject = new returnType(); 的伪代码,将 returnObject 用于污点传递
-                String[] realReturnTypeList = stringUtils.hanleFieldType(returnType);
-                Class clazz = getClassForName(realReturnTypeList[realReturnTypeList.length - 1]);
-                Object returnObject = clazz.newInstance();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
         /**
          * 污点分析,和输出污点分析结果
          */
@@ -196,17 +155,45 @@ public class FindEvilDiscovery {
                     for (int i = 0; i < argTypes.length; i++) {
                         argTaint.add(null);
                     }
+
                     // 将operandStack中的数据全部迁移到argTaint
                     int stackIndex = 0;
                     for (int i = 0; i < argTypes.length; i++) {
                         Type argType = argTypes[i];
                         if (argType.getSize() > 0) {
-                            //栈顶对应被调用方法最右边的参数,在之前的代码操作中已经通过基本的模拟栈帧把方法参数都保存在操作数栈中了
-                            argTaint.set(argTypes.length - 1 - i, operandStack.get(stackIndex + argType.getSize() - 1));
+                            //栈顶对应被调用方法最右边的参数
+                            int getIndex = stackIndex + argType.getSize() - 1;
+                            Set argSet;
+                            // 处理非正常情况
+                            if (getIndex > operandStack.size() - 1) {
+                                Field stack;
+                                stack = ChangeAsmVar.getAsmStack();
+                                int count = 0;
+                                int tmpOperandStackSize = operandStack.size() + 1;
+                                for (int num = 0; num < (tmpOperandStackSize - getIndex); num++) {
+                                    operandStack.push();
+                                    count++;
+                                }
+                                // 修改asm的stack
+                                try {
+                                    List tmpList = (List) stack.get(this.mv);
+                                    for (int num1 = 0; num1 <= count - 1; num1++) {
+                                        tmpList.add(new HashSet<>());
+                                    }
+                                    stack.set(this.mv, tmpList);
+                                    argSet = operandStack.get(getIndex);
+                                } catch (IllegalAccessException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            } else {
+                                argSet = operandStack.get(getIndex);
+                            }
+
+                            argTaint.set(argTypes.length - 1 - i, argSet);
                         }
                         stackIndex += argType.getSize();
                     }
-                    // System.out.println("\n\n" + argTaint.get(0));
+
                     // 构造方法的调用，意味参数0可以污染返回值
                     if (name.equals("<init>")) {
                         // 将结果污点传递到原始污点集,初始化的对象直接被参数污染
@@ -306,15 +293,9 @@ public class FindEvilDiscovery {
                         }
                         //如果不包含arrayList的byte数组，那么就正常传递污点
                         super.visitMethodInsn(opcode, owner, name, desc, itf);
-                        if (CoreMethodAdapter.isTest) {
-                            // 说明 此时的operandStack为空,那如何向上传递呢?
-//                            operandStack.push();
-//                            operandStack.get(0).addAll(taintList);
-                        }
-                        else{
+                        if (!CoreMethodAdapter.isTest) {
                             operandStack.get(0).addAll(taintList);
                         }
-
                         return;
                     }
                 }
@@ -402,9 +383,9 @@ public class FindEvilDiscovery {
             }
             if (opcode == Opcodes.INVOKESTATIC) {
                 boolean isValueOf = name.equals("valueOf") && desc.equals("(Ljava/lang/Object;)Ljava/lang/String;") && owner.equals("java/lang/String");
-                boolean isGetDecoder = owner.equals("java/util/Base64") &&  name.equals("getDecoder") && desc.equals("()Ljava/util/Base64$Decoder;");
+                boolean isGetDecoder = owner.equals("java/util/Base64") && name.equals("getDecoder") && desc.equals("()Ljava/util/Base64$Decoder;");
                 // || isGetDecoder
-                if ((isValueOf )  && operandStack.get(0).size() > 0) {
+                if ((isValueOf) && operandStack.get(0).size() > 0) {
                     Set taintList = operandStack.get(0);
                     super.visitMethodInsn(opcode, owner, name, desc, itf);
                     operandStack.get(0).addAll(taintList);

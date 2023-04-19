@@ -147,6 +147,30 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
     }
 
     /**
+     * 控制 operandStack.pop
+     */
+    public Set controlPopCount(int popCount) {
+        Set save0 = null;
+        for (int i = 0; i < popCount; i++) {
+            while (operandStack.size() == 0) {
+                Field stack = ChangeAsmVar.getAsmStack();
+                // 修改模拟的 stack
+                operandStack.push();
+                // 修改asm的stack
+                try {
+                    List tmpList = (List) stack.get(this.mv);
+                    tmpList.add(new HashSet<>());
+                    stack.set(this.mv, tmpList);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            save0 = operandStack.pop();
+        }
+        return save0;
+    }
+
+    /**
      * 校验栈帧,如果不符合规范，则直接终结进程
      */
     private void sanityCheck() {
@@ -224,7 +248,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitCode() {
-        debugOption.debug = true;
+        debugOption.debug = false;
         debugOption.clearSet();
 
         super.visitCode();
@@ -326,15 +350,13 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.BALOAD:
             case Opcodes.CALOAD:
             case Opcodes.SALOAD:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.LALOAD:
             case Opcodes.DALOAD:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 operandStack.push();
                 debugOption.setDebug(opcode);
@@ -346,31 +368,25 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.BASTORE:
             case Opcodes.CASTORE:
             case Opcodes.SASTORE:
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(3);
                 break;
             case Opcodes.LASTORE:
             case Opcodes.DASTORE:
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(4);
                 break;
             case Opcodes.POP:
-                operandStack.pop();
+                controlPopCount(1);
                 break;
             case Opcodes.POP2:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 break;
             case Opcodes.DUP:
                 operandStack.push(operandStack.get(0));
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP_X1:
-                saved0 = operandStack.pop();
-                saved1 = operandStack.pop();
+                saved0 = controlPopCount(1);
+                saved1 = controlPopCount(1);
                 operandStack.push(saved0);
                 operandStack.push(saved1);
                 operandStack.push(saved0);
@@ -379,9 +395,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP_X2:
-                saved0 = operandStack.pop();
-                saved1 = operandStack.pop();
-                saved2 = operandStack.pop();
+                saved0 = controlPopCount(1);
+                saved1 = controlPopCount(1);
+                saved2 = controlPopCount(1);
                 operandStack.push(saved0);
                 operandStack.push(saved2);
                 operandStack.push(saved1);
@@ -398,9 +414,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP2_X1:
-                saved0 = operandStack.pop();
-                saved1 = operandStack.pop();
-                saved2 = operandStack.pop();
+                saved0 = controlPopCount(1);
+                saved1 = controlPopCount(1);
+                saved2 = controlPopCount(1);
                 operandStack.push(saved1);
                 operandStack.push(saved0);
                 operandStack.push(saved2);
@@ -413,10 +429,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.DUP2_X2:
-                saved0 = operandStack.pop();
-                saved1 = operandStack.pop();
-                saved2 = operandStack.pop();
-                saved3 = operandStack.pop();
+                saved0 = controlPopCount(1);
+                saved1 = controlPopCount(1);
+                saved2 = controlPopCount(1);
+                saved3 = controlPopCount(1);
                 operandStack.push(saved1);
                 operandStack.push(saved0);
                 operandStack.push(saved3);
@@ -430,8 +446,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.SWAP:
-                saved0 = operandStack.pop();
-                saved1 = operandStack.pop();
+                saved0 = controlPopCount(1);
+                saved1 = controlPopCount(1);
                 operandStack.push(saved0);
                 operandStack.push(saved1);
                 debugOption.setDebug(opcode);
@@ -447,8 +463,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.FDIV:
             case Opcodes.IREM:
             case Opcodes.FREM:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
@@ -462,10 +477,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.DDIV:
             case Opcodes.LREM:
             case Opcodes.DREM:
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(4);
                 operandStack.push();
                 operandStack.push();
                 debugOption.setDebug(opcode);
@@ -473,14 +485,13 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 break;
             case Opcodes.INEG:
             case Opcodes.FNEG:
-                operandStack.pop();
+                controlPopCount(1);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.LNEG:
             case Opcodes.DNEG:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 operandStack.push();
                 debugOption.setDebug(opcode);
@@ -489,17 +500,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.ISHL:
             case Opcodes.ISHR:
             case Opcodes.IUSHR:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.LSHL:
             case Opcodes.LSHR:
             case Opcodes.LUSHR:
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(3);
                 operandStack.push();
                 operandStack.push();
                 debugOption.setDebug(opcode);
@@ -508,18 +516,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.IAND:
             case Opcodes.IOR:
             case Opcodes.IXOR:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.LAND:
             case Opcodes.LOR:
             case Opcodes.LXOR:
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(4);
                 operandStack.push();
                 operandStack.push();
                 debugOption.setDebug(opcode);
@@ -529,13 +533,13 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.I2C:
             case Opcodes.I2S:
             case Opcodes.I2F:
-                operandStack.pop();
+                controlPopCount(1);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.I2L:
             case Opcodes.I2D:
-                operandStack.pop();
+                controlPopCount(1);
                 operandStack.push();
                 operandStack.push();
                 debugOption.setDebug(opcode);
@@ -543,28 +547,26 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 break;
             case Opcodes.L2I:
             case Opcodes.L2F:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.D2L:
             case Opcodes.L2D:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.F2I:
-                operandStack.pop();
+                controlPopCount(1);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.F2L:
             case Opcodes.F2D:
-                operandStack.pop();
+                controlPopCount(1);
                 operandStack.push();
                 operandStack.push();
                 debugOption.setDebug(opcode);
@@ -572,58 +574,49 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 break;
             case Opcodes.D2I:
             case Opcodes.D2F:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.LCMP:
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(4);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.FCMPL:
             case Opcodes.FCMPG:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.DCMPL:
             case Opcodes.DCMPG:
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(4);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.IRETURN:
             case Opcodes.FRETURN:
             case Opcodes.ARETURN:
-                operandStack.pop();
+                controlPopCount(1);
                 break;
             case Opcodes.LRETURN:
             case Opcodes.DRETURN:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 break;
             case Opcodes.RETURN:
                 break;
             case Opcodes.ARRAYLENGTH:
-                operandStack.pop();
+                controlPopCount(1);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.ATHROW:
-                operandStack.pop();
+                controlPopCount(1);
                 break;
             case Opcodes.MONITORENTER:
             case Opcodes.MONITOREXIT:
-                operandStack.pop();
+                controlPopCount(1);
                 break;
             default:
                 throw new IllegalStateException("unsupported opcode: " + opcode);
@@ -681,7 +674,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         for (int i = localVariables.size(); i <= var; i++) {
             localVariables.add(new HashSet<>());
         }
-        Set<T> saved0;
+        Set<T> saved0 = null;
         switch (opcode) {
             case Opcodes.ILOAD:
             case Opcodes.FLOAD:
@@ -711,16 +704,33 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 localVariables.set(var, new HashSet<>());
                 break;
             case Opcodes.ASTORE:
-                saved0 = operandStack.pop();
-                localVariables.set(var, saved0);
+                // 非正常情况
+                if (operandStack.size() == 0) {
+                    List<Object> list2 = new ArrayList<>();
+                    Class cls = null;
+                    Field stack = null;
+                    try {
+                        stack = ChangeAsmVar.getAsmStack();
+                        list2.add(1);
+                        List tmpList = (List) stack.get(this.mv);
+                        stack.set(this.mv, list2);
+                        saved0 = new HashSet<>();
+                        saved0.add((T) (Integer) 1);
 
-                //像一些方法如，list.add(taint) taint是可以污染list的，但是当list.add(taint)调用完之后,list已经不在栈内了，无法给栈上的数据污染，所以这种情况
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    // 正常情况
+                    saved0 = operandStack.pop();
+                    localVariables.set(var, saved0);
+                }
+//像一些方法如，list.add(taint) taint是可以污染list的，但是当list.add(taint)调用完之后,list已经不在栈内了，无法给栈上的数据污染，所以这种情况
                 //直接给操作数表上的对应做上污染标记:instruction1表示，这个对象或值来自操作数表一号位置
                 // setTokenWithVar(var);
                 Set instruction = new HashSet<>();
                 instruction.add("instruction" + var);
                 localVariables.get(var).addAll(instruction);
-
                 break;
             case Opcodes.RET:
                 break;
@@ -742,14 +752,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.ANEWARRAY:
-                operandStack.pop();
+                controlPopCount(1);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
             case Opcodes.CHECKCAST:
                 break;
             case Opcodes.INSTANCEOF:
-                operandStack.pop();
+                controlPopCount(1);
                 operandStack.push();
                 debugOption.setDebug(opcode);
                 break;
@@ -789,7 +799,22 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 for (int i = 0; i < typeSize; i++) {
                     operandStack.pop();
                 }
-                operandStack.pop();
+                if (operandStack.size() == 0) {
+                    Field stack = null;
+                    try {
+                        stack = ChangeAsmVar.getAsmStack();
+                        List tmpList = (List) stack.get(this.mv);
+                        int tmpSize = tmpList.size();
+                        for (int i = 0; i <= tmpSize - 1; i++) {
+                            tmpList.add(new HashSet<>());
+                        }
+                        stack.set(this.mv, tmpList);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    operandStack.pop();
+                }
                 break;
             default:
                 throw new IllegalStateException("unsupported opcode: " + opcode);
@@ -889,7 +914,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 throw new RuntimeException(e);
             }
         } else {
-        // 2.处理正常情况
+            // 2.处理正常情况
             for (int i = 0; i < argTypes.length; i++) {
                 Type argType = argTypes[i];
                 if (argType.getSize() > 0) {
@@ -910,14 +935,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      * 对方法调用中的参数进行污点分析
      */
     @Override
-    public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf)
-    {
-        if (owner.equals("java/lang/String") &&  name.equals("<init>") && desc.equals("(Ljava/lang/String;)V")) {
-//            System.out.println("sb");
-//            System.out.println(analyzerAdapter.stack.size());
-            debugOption.setOwner(owner,name,desc);
-            debugOption.printDebug();
-        }
+    public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+
+        debugOption.setFilter("java/util/Base64$Decoder", "decode", "(Ljava/lang/String;)[B");
+        debugOption.filter(owner, name, desc);
 
         // 获取method的参数类型
         Type[] argTypes = getMethodType(opcode, owner, name, desc, itf);
@@ -951,16 +972,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     // 如果符合我们的白名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
                     if (passthrough[0].equals(owner) && passthrough[1].equals(name) && (passthrough[2].equals(desc) || passthrough[2].equals("*"))) {
                         for (int i = 3; i < passthrough.length; i++) {
-                            // test 处理特殊情况
-//                            Integer integer1 = (Integer) passthrough[i];
-//                            Integer integer2 = -1;
-//                            if(i == 3 && integer1 == integer2){
-//                                Set test1 = new HashSet();
-//                                test1.add((Integer) 1);
-//                                resultTaint.addAll(test1);
-//                            }else {
-//                                resultTaint.addAll(argTaint.get((Integer) passthrough[i]));
-//                            }
                             resultTaint.addAll(argTaint.get((Integer) passthrough[i]));
                         }
                         break;
@@ -1040,7 +1051,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.IFLE:
             case Opcodes.IFNULL:
             case Opcodes.IFNONNULL:
-                operandStack.pop();
+                controlPopCount(1);
                 break;
             case Opcodes.IF_ICMPEQ:
             case Opcodes.IF_ICMPNE:
@@ -1050,8 +1061,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             case Opcodes.IF_ICMPLE:
             case Opcodes.IF_ACMPEQ:
             case Opcodes.IF_ACMPNE:
-                operandStack.pop();
-                operandStack.pop();
+                controlPopCount(2);
                 break;
             case Opcodes.GOTO:
                 break;
@@ -1099,7 +1109,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         sanityCheck();
     }
 
-    // TODO 存在问题?
     /**
      * 对载入字符串进行相应处理
      */

@@ -41,19 +41,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "TODO_SCOPE": "所有位置",
-    "extract.method.default.visibility": "private",
-    "last_opened_file_path": "D:/Coding/JSPHunter",
-    "project.structure.last.edited": "项目",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;TODO_SCOPE&quot;: &quot;所有位置&quot;,
+    &quot;extract.method.default.visibility&quot;: &quot;private&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Coding/JSPHunter&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;项目&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.project.maven.ignored.files&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
@@ -174,6 +174,11 @@
       <workItem from="1681733728392" duration="7594000" />
       <workItem from="1681775055213" duration="2784000" />
       <workItem from="1681781863159" duration="3860000" />
+      <workItem from="1681805269819" duration="2327000" />
+      <workItem from="1681821977013" duration="4166000" />
+      <workItem from="1681880993843" duration="4684000" />
+      <workItem from="1681888320011" duration="4867000" />
+      <workItem from="1681899769803" duration="5998000" />
     </task>
     <servers />
   </component>
@@ -182,19 +187,24 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>307</line>
-          <option name="timeStamp" value="13" />
+          <line>315</line>
+          <option name="timeStamp" value="15" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>334</line>
-          <option name="timeStamp" value="15" />
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/CoreMethodAdapter.java</url>
+          <line>370</line>
+          <option name="timeStamp" value="51" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="org.objectweb.asm.commons.AnalyzerAdapter" memberName="stack" />
+        <PinnedItemInfo parentTag="org.objectweb.asm.commons.AnalyzerAdapter" memberName="locals" />
+      </pinned-members>
+    </pin-to-top-manager>
     <watches-manager>
       <configuration name="Application">
-        <watch expression="operandStack" language="JAVA" />
         <watch expression="argTypes.length" language="JAVA" />
         <watch expression="argTaint" language="JAVA" />
         <watch expression="resultTaint" language="JAVA" />
@@ -202,6 +212,8 @@
         <watch expression="((AnalyzerAdapter)((FindEvilDataflowMethodVisitor)this).mv).stack" custom="org.objectweb.asm.commons.AnalyzerAdapter,org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" />
         <watch expression="owner" />
         <watch expression="desc" />
+        <watch expression="((AnalyzerAdapter)((FindEvilDataflowMethodVisitor)this).mv).locals" custom="org.objectweb.asm.commons.AnalyzerAdapter,org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" />
+        <watch expression="operandStack.stack" />
       </configuration>
     </watches-manager>
   </component>
