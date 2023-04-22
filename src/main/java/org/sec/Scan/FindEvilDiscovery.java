@@ -393,8 +393,9 @@ public class FindEvilDiscovery {
             if(opcode ==Opcodes.INVOKESTATIC){
             boolean isValueOf = name.equals("valueOf") && desc.equals("(Ljava/lang/Object;)Ljava/lang/String;") && owner.equals("java/lang/String");
             boolean isMethodUtilInvoke = owner.equals("sun/reflect/misc/MethodUtil") && name.equals("invoke") && desc.equals("(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+            boolean JspRuntimeLibrary = owner.equals("org/apache/jasper/runtime/JspRuntimeLibrary") && name.equals("introspect") && desc.equals("(Ljava/lang/Object;Ljavax/servlet/ServletRequest;)V");
 
-            if ((isMethodUtilInvoke) && operandStack.get(0).size() > 0) {
+            if ((isMethodUtilInvoke || JspRuntimeLibrary) && operandStack.get(0).size() > 0) {
                 Set<Integer> taints = new HashSet<>();
                 for (Object node : operandStack.get(0)) {
                     if (node instanceof Integer) {
@@ -406,7 +407,13 @@ public class FindEvilDiscovery {
                         if (this.name.equals("_jspService")) {
                             if (!printEvilMessage.contains(1)) {
                                 printEvilMessage.add(1);
-                                String msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   MethodUtil.invoke 可受request控制，该文件为webshell!!!";
+                                String msg = null;
+                                if(isMethodUtilInvoke){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   MethodUtil.invoke 可受request控制，该文件为webshell!!!";
+                                }else if(JspRuntimeLibrary){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   利用jsp标签属性注入字符串解析，该文件可疑,建议查看此文件进一步判断";
+                                }
+
                                 logger.info(msg);
                                 Constant.evilClass.add(classFileName);
                                 Constant.msgList.add(msg);
@@ -418,7 +425,7 @@ public class FindEvilDiscovery {
                 super.visitMethodInsn(opcode, owner, name, desc, itf);
                 return;
             }
-            if ((isValueOf) && operandStack.get(0).size() > 0) {
+            if ((isValueOf ) && operandStack.get(0).size() > 0) {
                 Set taintList = operandStack.get(0);
                 super.visitMethodInsn(opcode, owner, name, desc, itf);
                 operandStack.get(0).addAll(taintList);

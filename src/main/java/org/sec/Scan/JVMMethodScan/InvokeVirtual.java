@@ -37,7 +37,7 @@ public class InvokeVirtual {
         boolean TemplatesImpl = (owner.equals("com/sun/org/apache/xalan/internal/xsltc/trax/TemplatesImpl") && name.equals("getOutputProperties") && desc.equals("()Ljava/util/Properties;"));
         boolean ELProcessor = (owner.equals("javax/el/ELProcessor") && name.equals("eval") && desc.equals("(Ljava/lang/String;)Ljava/lang/Object;"));
         boolean ExpressionFactory = (owner.equals("javax/el/ExpressionFactory") && name.equals("createValueExpression") && desc.equals("(Ljavax/el/ELContext;Ljava/lang/String;Ljava/lang/Class;)Ljavax/el/ValueExpression;"));
-        boolean readObject = (name.equals("readObject") && desc.equals("()Ljava/lang/Object;"));
+        //boolean getEngineByName = (owner.equals("javax/script/ScriptEngineManager") && name.equals("getEngineByName") && desc.equals("(Ljava/lang/String;)Ljavax/script/ScriptEngine;"));
 
         if (ExpressionFactory) {
             Type[] argumentTypes = Type.getArgumentTypes(desc);
@@ -164,7 +164,7 @@ public class InvokeVirtual {
                 return "void";
             }
         }
-        if (exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImpl || ELProcessor || readObject) {
+        if (exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImpl || ELProcessor) {
             if (findEvilDataflowMethodVisitor.operandStack.get(0).size() > 0) {
                 Set<Integer> taints = new HashSet<>();
                 int taintNum;
@@ -194,8 +194,6 @@ public class InvokeVirtual {
                                     msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------URLClassloader.loadClass 或 TemplatesImpl 可受request控制，该文件可能为webshell!!!,建议查看此文件";
                                 }else if(ELProcessor){
                                     msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ELProcessor.eval 可受request控制，该文件为webshell!!!";
-                                }else if(readObject){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------调用了 readObject ，该文件可能为实现反序列化readObject触发的JSP WebShell!!!，建议查看此文件进一步判断";
                                 }
                                 logger.info(msg);
                                 Constant.evilClass.add(classFileName);
@@ -219,8 +217,6 @@ public class InvokeVirtual {
                     toEvilTaint.put("TemplatesImpl", taints);
                 }else if(ELProcessor){
                     toEvilTaint.put("ELProcessor", taints);
-                }else if(readObject){
-                    toEvilTaint.put("readObject", taints);
                 }
                 findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
                 return "void";

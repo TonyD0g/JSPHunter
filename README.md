@@ -38,9 +38,17 @@ https://github.com/threedr3am/JSP-WebShells
 - JSPKiler: 待测
 
 - JSPFinder:  4/29 ,  13%
-- JSPHunter: 26/29 , 89%
+- JSPHunter: 28/29 , 96%
 
 **目前正在优化检测逻辑,使检测率提高**
+
+
+
+# 误报率
+
+增强检测能力时，可能过于考虑检测，而忽略了误报率,因此待改进
+
+误报率待测
 
 # Refence
 

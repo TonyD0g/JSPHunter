@@ -38,10 +38,10 @@ public class InvokeInterface {
     public static void printOutcome(Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, Set<Integer> taintList, String evilOwner) {
         Set tmpTaintList = new HashSet();
         for (Object taint : taintList) {
-            if (taint instanceof Integer || (taint instanceof String && ((String) taint).contains("instruction"))) {
+            if (taint instanceof Integer || (taint instanceof String )) {
                 if (!printEvilMessage.contains(1)) {
                     printEvilMessage.add(1);
-                    String msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ " + evilOwner + " 可受request控制，该文件为webshell!!!";
+                    String msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ " + evilOwner + " 可受request控制或其直接传入shellcode，该文件可能为webshell!!!,建议查看此文件进一步确认";
                     logger.info(msg);
                     Constant.evilClass.add(classFileName);
                     Constant.msgList.add(msg);
