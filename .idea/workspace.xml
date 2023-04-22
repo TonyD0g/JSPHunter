@@ -46,7 +46,7 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;TODO_SCOPE&quot;: &quot;所有位置&quot;,
-    &quot;extract.method.default.visibility&quot;: &quot;private&quot;,
+    &quot;extract.method.default.visibility&quot;: &quot;public&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/Coding/JSPHunter&quot;,
     &quot;project.structure.last.edited&quot;: &quot;项目&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
@@ -179,6 +179,11 @@
       <workItem from="1681880993843" duration="4684000" />
       <workItem from="1681888320011" duration="4867000" />
       <workItem from="1681899769803" duration="5998000" />
+      <workItem from="1681912100725" duration="4000" />
+      <workItem from="1682033943800" duration="26000" />
+      <workItem from="1682063523951" duration="1265000" />
+      <workItem from="1682125043813" duration="4923000" />
+      <workItem from="1682138064209" duration="5912000" />
     </task>
     <servers />
   </component>
@@ -186,14 +191,14 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/FindEvilDiscovery.java</url>
-          <line>315</line>
-          <option name="timeStamp" value="15" />
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/JVMMethodScan/InvokeVirtual.java</url>
+          <line>167</line>
+          <option name="timeStamp" value="59" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/CoreMethodAdapter.java</url>
-          <line>370</line>
-          <option name="timeStamp" value="51" />
+          <line>155</line>
+          <option name="timeStamp" value="61" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

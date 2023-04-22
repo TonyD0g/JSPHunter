@@ -2,7 +2,7 @@
 
 **基于污点分析和模拟栈帧技术的JSP Webshell检测**    
 
-`仅做学习记录`, **95%**代码来源于JSPFinder和JSPKiller,感激这两个作品的作者.   
+`仅做学习记录`, **85%**代码来源于JSPFinder和JSPKiller,感激这两个作品的作者.   
 
 尝试对其进行优化检测逻辑和重构,以作为自己学习污点分析和模拟栈帧技术的检验和毕业设计.
 
@@ -12,21 +12,13 @@
 
 (相比于 JSPFinder,JSPKiller)
 
-- 使用jasper 编译(JSPFinder所实现了)
+- 使用jasper 编译(JSPFinder已经实现了)
 
-- PassthroughDiscovery 类性能比gadgetinspector的高 (JSPFinder所实现了)
+- PassthroughDiscovery 类性能比gadgetinspector的高 (JSPFinder已经实现了)
 
 - 将 FindEvilDiscovery 中的 visitMethodInsn 抽离出来,方便于扩展
 
-- 增强检测能力:
-
-```md
-- 能检测 ProcessBuilder.command 的绕过
-- 能检测 newInstance 的绕过
-- 能检测 匿名内部类 的绕过
-- 能检测 Proxy的native方法defineClass0加载类字节码 的绕过
-- 优化检测算法,实现少报错
-```
+- 增强检测能力: 检测能力比JSPFinder更强,检测正常jsp文件格式不会报错
 
 # TODO
 
@@ -46,7 +38,7 @@ https://github.com/threedr3am/JSP-WebShells
 - JSPKiler: 待测
 
 - JSPFinder:  4/29 ,  13%
-- JSPHunter: 15/29 , 51%
+- JSPHunter: 26/29 , 89%
 
 **目前正在优化检测逻辑,使检测率提高**
 

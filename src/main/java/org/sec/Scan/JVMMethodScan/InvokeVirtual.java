@@ -31,7 +31,46 @@ public class InvokeVirtual {
         boolean inputStream = owner.equals("java/io/InputStream") && name.equals("read") && desc.equals("([BII)I");
         boolean methodInvoke = owner.equals("java/lang/reflect/Method") && name.equals("invoke") && desc.equals("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
         boolean ProcessBuilderCommand = owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;");
-        boolean newInstance = owner.equals("java/lang/reflect/Constructor") && name.equals("newInstance") && desc.equals("([Ljava/lang/Object;)Ljava/lang/Object;");
+        boolean newInstance = (owner.equals("java/lang/reflect/Constructor") && name.equals("newInstance") && desc.equals("([Ljava/lang/Object;)Ljava/lang/Object;")) || (owner.equals("java/lang/Class") && name.equals("newInstance") && desc.equals("()Ljava/lang/Object;"));
+        boolean JdbcRowSetImpl = owner.equals("com/sun/rowset/JdbcRowSetImpl") && name.equals("setDataSourceName") && desc.equals("(Ljava/lang/String;)V");
+        boolean URLClassloader = (owner.equals("java/net/URLClassLoader") && name.equals("loadClass") && desc.equals("(Ljava/lang/String;)Ljava/lang/Class;"));
+        boolean TemplatesImpl = (owner.equals("com/sun/org/apache/xalan/internal/xsltc/trax/TemplatesImpl") && name.equals("getOutputProperties") && desc.equals("()Ljava/util/Properties;"));
+        boolean ELProcessor = (owner.equals("javax/el/ELProcessor") && name.equals("eval") && desc.equals("(Ljava/lang/String;)Ljava/lang/Object;"));
+        boolean ExpressionFactory = (owner.equals("javax/el/ExpressionFactory") && name.equals("createValueExpression") && desc.equals("(Ljavax/el/ELContext;Ljava/lang/String;Ljava/lang/Class;)Ljavax/el/ValueExpression;"));
+        boolean readObject = (name.equals("readObject") && desc.equals("()Ljava/lang/Object;"));
+
+        if (ExpressionFactory) {
+            Type[] argumentTypes = Type.getArgumentTypes(desc);
+            Set<Integer> taints = null;
+            if (findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length - 1).size() > 0) {
+                taints = new HashSet<>();
+                int taintNum = 0;
+                for (Object node : findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length - 1)) {
+                    if (node instanceof Integer || ((node instanceof String && ((String) node).contains("instruction")))) {
+                        if (node instanceof Integer) {
+                            taintNum = (Integer) node;
+                            if (Constant.debug) {
+                                logger.info("ClassLoader的defineClass可被arg" + taintNum + "污染");
+                            }
+                            taints.add(taintNum);
+                        }
+
+                        if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
+                            if (!printEvilMessage.contains(1)) {
+                                printEvilMessage.add(1);
+                                String msg = Constant.classNameToJspName.get(classFileName) + "------ExpressionFactory 可受request控制，该文件为webshell";
+                                logger.info(msg);
+                                Constant.evilClass.add(classFileName);
+                                Constant.msgList.add(msg);
+                            }
+                        }
+                    }
+                }
+            }
+            toEvilTaint.put("ExpressionFactory", taints);
+            findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
+            return "void";
+        }
 
         if (subString) {
             int k = 0;
@@ -125,16 +164,20 @@ public class InvokeVirtual {
                 return "void";
             }
         }
-        if (exec || ProcessBuilderCommand || newInstance) {
+        if (exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImpl || ELProcessor || readObject) {
             if (findEvilDataflowMethodVisitor.operandStack.get(0).size() > 0) {
                 Set<Integer> taints = new HashSet<>();
+                int taintNum;
                 for (Object node : findEvilDataflowMethodVisitor.operandStack.get(0)) {
-                    if (node instanceof Integer) {
-                        int taintNum = (Integer) node;
-                        if (Constant.debug) {
-                            logger.info("Runtime.exec可被arg" + taintNum + "污染");
+                    if (node instanceof Integer || (node instanceof String && ((String) node).contains("instruction"))) {
+                        if(node instanceof Integer){
+                            taintNum = (Integer) node;
+                            if (Constant.debug) {
+                                logger.info("Runtime.exec可被arg" + taintNum + "污染");
+                            }
+                            taints.add(taintNum);
                         }
-                        taints.add(taintNum);
+
                         if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
                             if (!printEvilMessage.contains(1)) {
                                 printEvilMessage.add(1);
@@ -143,9 +186,16 @@ public class InvokeVirtual {
                                     msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------Runtime.exec 可受request控制，该文件为webshell!!!";
                                 }else if(ProcessBuilderCommand) {
                                     msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ProcessBuilder 可受request控制，该文件为webshell!!!";
-                                }
-                                else if(newInstance){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------newInstance 可受request控制，该文件可能为webshell!!!";
+                                } else if(newInstance){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------newInstance 可受request控制，该文件可能为webshell!!!,建议查看此文件";
+                                }else if(JdbcRowSetImpl){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------JdbcRowSetImpl.setDataSourceName 可受request控制，该文件可能为webshell!!!,建议查看此文件";
+                                }else if(URLClassloader || TemplatesImpl){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------URLClassloader.loadClass 或 TemplatesImpl 可受request控制，该文件可能为webshell!!!,建议查看此文件";
+                                }else if(ELProcessor){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ELProcessor.eval 可受request控制，该文件为webshell!!!";
+                                }else if(readObject){
+                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------调用了 readObject ，该文件可能为实现反序列化readObject触发的JSP WebShell!!!，建议查看此文件进一步判断";
                                 }
                                 logger.info(msg);
                                 Constant.evilClass.add(classFileName);
@@ -157,8 +207,20 @@ public class InvokeVirtual {
                 //将能够流入到Runtime.exec方法中的入参标记为污染点
                 if(exec){
                     toEvilTaint.put("Runtime", taints);
-                }else {
+                }else if(ProcessBuilderCommand){
                     toEvilTaint.put("ProcessBuilder", taints);
+                }else if(newInstance){
+                    toEvilTaint.put("newInstance", taints);
+                }else if(JdbcRowSetImpl){
+                    toEvilTaint.put("JdbcRowSetImpl", taints);
+                }else if(URLClassloader){
+                    toEvilTaint.put("URLClassloader", taints);
+                }else if(TemplatesImpl){
+                    toEvilTaint.put("TemplatesImpl", taints);
+                }else if(ELProcessor){
+                    toEvilTaint.put("ELProcessor", taints);
+                }else if(readObject){
+                    toEvilTaint.put("readObject", taints);
                 }
                 findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
                 return "void";
@@ -185,13 +247,13 @@ public class InvokeVirtual {
         if (inputStream) {
             Type[] argumentTypes = Type.getArgumentTypes(desc);
             //operandStack.get(argumentTypes.length)表示取出实体类中的污点
-            Set tains = findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length);
-            if (tains.size() > 0) {
+            Set trains = findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length);
+            if (trains.size() > 0) {
                 Set tmpTaints = findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length - 1);
                 for (Object tmpTaint : tmpTaints) {
                     if (tmpTaint instanceof String && ((String) tmpTaint).indexOf("instruction") > -1) {
                         String localVariablesNum = ((String) tmpTaint).substring(11);
-                        findEvilDataflowMethodVisitor.localVariables.get(new Integer(localVariablesNum)).addAll(tains);
+                        findEvilDataflowMethodVisitor.localVariables.get(new Integer(localVariablesNum)).addAll(trains);
                     }
                 }
             }

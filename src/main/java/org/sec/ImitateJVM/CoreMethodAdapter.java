@@ -147,7 +147,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
     }
 
     /**
-     * 控制 operandStack.pop
+     * 控制 operandStack.pop,并进行安全检查
      */
     public Set controlPopCount(int popCount) {
         Set save0 = null;
