@@ -8,7 +8,6 @@ import org.sec.Data.DataFactory;
 import org.sec.Data.DataLoader;
 import org.sec.Data.MethodReference;
 import org.sec.ImitateJVM.CoreMethodAdapter;
-import org.sec.utils.stringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -174,7 +173,7 @@ public class PassthroughDiscovery {
             String fileName = methodToVisit.getOwner().substring(methodToVisit.getOwner().lastIndexOf("/") + 1);
             byte[] classByte = Constant.classNameToByte.get(fileName);
             ClassReader cr = new ClassReader(classByte);
-            PassthroughDataflowClassVisitor passthroughDataflowClassVisitor = new PassthroughDataflowClassVisitor(passthroughDataflow, Opcodes.ASM6, methodToVisit);
+            PassthroughDataflowClassVisitor passthroughDataflowClassVisitor = new PassthroughDataflowClassVisitor(passthroughDataflow, Opcodes.ASM5, methodToVisit);
             cr.accept(passthroughDataflowClassVisitor, ClassReader.EXPAND_FRAMES);
             // System.out.println("[fileName] " + fileName);
         }
@@ -207,7 +206,7 @@ public class PassthroughDiscovery {
             MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
 
             if (name.equals(this.methodToVisit.getName())) {
-                passthroughDataflowMethodVisitor = new PassthroughDataflowMethodVisitor(passthroughDataflow, Opcodes.ASM6, access, descriptor, mv, this.name, name, signature, exceptions);
+                passthroughDataflowMethodVisitor = new PassthroughDataflowMethodVisitor(passthroughDataflow, Opcodes.ASM5, access, descriptor, mv, this.name, name, signature, exceptions);
                 passthroughDataflow.put(new MethodReference.Handle(this.name, name, descriptor), getReturnTaint());
                 return new JSRInlinerAdapter(passthroughDataflowMethodVisitor, access, name, descriptor, signature, exceptions);
             }
@@ -347,10 +346,6 @@ public class PassthroughDiscovery {
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-            if (owner.equals("java/util/Base64$Decoder") &&  name.equals("decode") && desc.equals("(Ljava/lang/String;)[B")) {
-               // System.out.println("sb");
-               // System.out.println(analyzerAdapter.stack.size());
-            }
             // 获取method参数类型
             Type[] methodArgTypes = getMethodType(opcode, owner, name, desc, itf);
 
@@ -418,7 +413,7 @@ public class PassthroughDiscovery {
         private Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCalls = new HashMap<>();
 
         public MethodCallDiscoveryClassVisitor() {
-            super(Opcodes.ASM6);
+            super(Opcodes.ASM5);
         }
 
         @Override

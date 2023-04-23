@@ -70,8 +70,4 @@ public class DebugOption {
         System.out.println("----------------------------------------------------------------");
     }
 
-    // todo 设置过滤器
-    public static void test(String owner1,String name1, String desc1){
-
-    }
 }

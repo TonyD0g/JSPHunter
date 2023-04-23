@@ -10,7 +10,7 @@ public class RegexUtils {
         switch (type){
             // todo 获取 普通括号()右边的内容 ()123
             case "rightBrackets":
-                regEx = "(?<=\\))(.+)"; // (?<=\()(.+?)(?=\)) (?<=\))(.*?)(?=\()
+                regEx = "(?<=\\))(.+)";
                 break;
             // 获取 普通括号()中的内容
             case "brackets":

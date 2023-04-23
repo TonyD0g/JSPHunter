@@ -29,7 +29,7 @@ public class FindEvilDiscovery {
             String className = methodToVisit.getOwner().substring(methodToVisit.getOwner().lastIndexOf("/") + 1);
             byte[] classByte = Constant.classNameToByte.get(className);
             ClassReader cr = new ClassReader(classByte);
-            FindEvilDataflowClassVisitor findEvilDataflowClassVisitor = new FindEvilDataflowClassVisitor(EvilDataflow, Opcodes.ASM6, methodToVisit, Constant.classNameToClassFileName.get(className));
+            FindEvilDataflowClassVisitor findEvilDataflowClassVisitor = new FindEvilDataflowClassVisitor(EvilDataflow, Opcodes.ASM5, methodToVisit, Constant.classNameToClassFileName.get(className));
             cr.accept(findEvilDataflowClassVisitor, ClassReader.EXPAND_FRAMES);
         }
     }
@@ -64,7 +64,7 @@ public class FindEvilDiscovery {
                 if (Constant.debug) {
                     logger.info("观察的类为:" + this.name + "     观察的方法为:" + name);
                 }
-                findEvilDataflowMethodVisitor = new FindEvilDataflowMethodVisitor(EvilDataflow, Opcodes.ASM6, access, descriptor, mv, this.name, name, signature, exceptions, classFileName, printEvilMessage);
+                findEvilDataflowMethodVisitor = new FindEvilDataflowMethodVisitor(EvilDataflow, Opcodes.ASM5, access, descriptor, mv, this.name, name, signature, exceptions, classFileName, printEvilMessage);
                 EvilDataflow.put(new MethodReference.Handle(this.name, name, descriptor), getReturnTaint());
                 return new JSRInlinerAdapter(findEvilDataflowMethodVisitor, access, name, descriptor, signature, exceptions);
             }
@@ -150,7 +150,6 @@ public class FindEvilDiscovery {
                 case Opcodes.INVOKEINTERFACE:
                 case Opcodes.INVOKEVIRTUAL:
                 case Opcodes.INVOKESPECIAL:
-                    // todo 处理调用恶意方法的情况
                     // 初始化
                     for (int i = 0; i < argTypes.length; i++) {
                         argTaint.add(null);
@@ -278,7 +277,7 @@ public class FindEvilDiscovery {
                 boolean stringBuilderInit = owner.equals("java/lang/StringBuilder") && name.equals("<init>") && desc.equals("(Ljava/lang/String;)V");
                 boolean defineClass = owner.equals("java/lang/ClassLoader") && name.equals("defineClass");
                 boolean URLClassLoaderInit = owner.equals("java/net/URLClassLoader") && name.equals("<init>") && desc.equals("([Ljava/net/URL;)V");
-
+                boolean ObjectInputStreamResolveClass = owner.equals("java/io/ObjectInputStream") && name.equals("resolveClass") && desc.equals("(Ljava/io/ObjectStreamClass;)Ljava/lang/Class;");
 
                 if (stringByteInit) {
                     Set taintList = operandStack.get(0);
@@ -355,7 +354,7 @@ public class FindEvilDiscovery {
                 }
 
                 //只要入参能流入到defineClass方法的第1号位置参数，1号参数是字节数组，就表示是个危险方法
-                if (defineClass || URLClassLoaderInit) {
+                if (defineClass || URLClassLoaderInit || ObjectInputStreamResolveClass) {
                     Type[] argumentTypes = Type.getArgumentTypes(desc);
                     //operandStack.get(argumentTypes.length-1)表示取出defineClass第1号位置的污点集合
                     Set<Integer> taints = null;

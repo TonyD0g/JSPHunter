@@ -30,7 +30,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
     public OperandStack<T> operandStack;
     public LocalVariables<T> localVariables;
 
-    // 使用白名单的方式去匹配 能外界输入的类及其方法
+    // 使用黑名单的方式去匹配 能外界输入的类,对应的方法,对应参数(0为主体,1~n为参数)
     private static final Object[][] PASSTHROUGH_DATAFLOW;
 
     // todo 将此白名单导出到一个文件中,使用fileUtils去读取,方便于扩展
@@ -121,7 +121,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         };
     }
 
-    // dup强引用
+    // 是否开启debug选项
     DebugOption debugOption = new DebugOption();
 
     public CoreMethodAdapter(final int api, final MethodVisitor mv, final String owner, int access,
@@ -959,7 +959,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 // 处理匿名内部类
                 handleAnonymousClass(this, owner, argTypes, argTaint);
 
-                // []
                 if (name.equals("<init>")) {
                     resultTaint = argTaint.get(0);
                 } else {
@@ -967,10 +966,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 }
 
                 // todo 3 在名单内的方法的调用，已预置哪个参数可以污染返回值 (?)
-                // 白名单匹配 污点源
+                // 黑名单匹配 污点源
                 for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
                     // 如果符合我们的白名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
-                    if (passthrough[0].equals(owner) && passthrough[1].equals(name) && (passthrough[2].equals(desc) || passthrough[2].equals("*"))) {
+                    if ( passthrough[0].equals(owner) && passthrough[1].equals(name) && (passthrough[2].equals(desc) || passthrough[2].equals("*"))) {
                         for (int i = 3; i < passthrough.length; i++) {
                             resultTaint.addAll(argTaint.get((Integer) passthrough[i]));
                         }

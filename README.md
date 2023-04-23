@@ -1,12 +1,12 @@
 # JSPHunter [Java 8]
 
-**基于污点分析和模拟栈帧技术的JSP Webshell检测**    
+**基于污点分析和模拟栈帧技术的JSP Webshell检测**    `仅做学习记录`
 
-`仅做学习记录`, **85%**代码来源于JSPFinder和JSPKiller,感激这两个作品的作者.   
+我发现JSPFinder和JSPKiller模拟栈帧的部分几乎一致，因此不重复造轮子，直接在JSPFinder的基础上进行改进,所以**85%**代码来源于JSPFinder和JSPKiller,感激这两个作品的作者.   
 
 尝试对其进行优化检测逻辑和重构,以作为自己学习污点分析和模拟栈帧技术的检验和毕业设计.
 
-目前正在不断更新优化，暂无可用版本.(等把webshell bypass都检测出差不多了发布正式版本)
+目前正在不断更新优化，欢迎师傅们提交bypass，我会进行优化改进
 
 # 个人优化
 
@@ -18,12 +18,11 @@
 
 - 将 FindEvilDiscovery 中的 visitMethodInsn 抽离出来,方便于扩展
 
-- 增强检测能力: 检测能力比JSPFinder更强,检测正常jsp文件格式不会报错
+- 增强检测能力: 检测能力比JSPFinder更强,检测正常jsp文件格式不会报错,能把"webshell bypass"的绕过全部检测出来
 
 # TODO
 
-- // todo 增强检测能力，争取能把"webshell bypass"的绕过全部检测出来(目前正在做的事)
-- // todo 将白名单导出到一个文件中,使用fileUtils去读取,方便于扩展
+- // todo 将污点源黑名单导出到一个文件中,使用fileUtils去读取,方便于扩展
 
 - //todo 解决继承,实现接口能导致绕过的问题
 
@@ -38,17 +37,30 @@ https://github.com/threedr3am/JSP-WebShells
 - JSPKiler: 待测
 
 - JSPFinder:  4/29 ,  13%
-- JSPHunter: 28/29 , 96%
+- JSPHunter: 29/29 , 100%
 
 **目前正在优化检测逻辑,使检测率提高**
 
 
 
-# 误报率
+# 关于误报率
 
 增强检测能力时，可能过于考虑检测，而忽略了误报率,因此待改进
 
 误报率待测
+
+
+
+# 使用方法
+
+```md
+java -cp JSPHunter.jar org.sec.Main -d "要扫描的tomcat路径" -cp "tomcat\lib" -m b 
+
+如：
+java -cp JSPHunter.jar org.sec.Main -d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -m b 
+```
+
+
 
 # Refence
 
@@ -57,3 +69,7 @@ https://github.com/threedr3am/JSP-WebShells
 [JSPKiller](https://github.com/changheluor007/JSPKiller)
 
 [JSPFinder](https://github.com/flowerwind/JspFinder)
+
+[使用ASM框架创建ClassVisitor时遇到IllegalArgumentException的一种可能解决办法](https://blog.csdn.net/fwhdzh/article/details/128694172)
+
+[IDEA 错误 找不到或无法加载主类（完美解决）](https://blog.csdn.net/l_mloveforever/article/details/112725753)

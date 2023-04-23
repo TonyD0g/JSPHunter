@@ -37,8 +37,21 @@ public class InvokeVirtual {
         boolean TemplatesImpl = (owner.equals("com/sun/org/apache/xalan/internal/xsltc/trax/TemplatesImpl") && name.equals("getOutputProperties") && desc.equals("()Ljava/util/Properties;"));
         boolean ELProcessor = (owner.equals("javax/el/ELProcessor") && name.equals("eval") && desc.equals("(Ljava/lang/String;)Ljava/lang/Object;"));
         boolean ExpressionFactory = (owner.equals("javax/el/ExpressionFactory") && name.equals("createValueExpression") && desc.equals("(Ljavax/el/ELContext;Ljava/lang/String;Ljava/lang/Class;)Ljavax/el/ValueExpression;"));
-        //boolean getEngineByName = (owner.equals("javax/script/ScriptEngineManager") && name.equals("getEngineByName") && desc.equals("(Ljava/lang/String;)Ljavax/script/ScriptEngine;"));
+        boolean readObject = (name.equals("readObject") && desc.equals("()Ljava/lang/Object;"));
 
+        if(readObject){
+            if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
+                if (!printEvilMessage.contains(1)) {
+                    printEvilMessage.add(1);
+                    String msg = null;
+                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------调用了 readObject，可能为重写ObjectInputStream.resolveClass型webshell.,建议查看此文件进一步判断!";
+                    logger.info(msg);
+                    Constant.evilClass.add(classFileName);
+                    Constant.msgList.add(msg);
+                }
+            }
+            return "void";
+        }
         if (ExpressionFactory) {
             Type[] argumentTypes = Type.getArgumentTypes(desc);
             Set<Integer> taints = null;
@@ -71,7 +84,6 @@ public class InvokeVirtual {
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
             return "void";
         }
-
         if (subString) {
             int k = 0;
             Set<Object> listAll = new HashSet<>();
@@ -164,7 +176,7 @@ public class InvokeVirtual {
                 return "void";
             }
         }
-        if (exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImpl || ELProcessor) {
+        if (exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImpl || ELProcessor || readObject) {
             if (findEvilDataflowMethodVisitor.operandStack.get(0).size() > 0) {
                 Set<Integer> taints = new HashSet<>();
                 int taintNum;
@@ -177,7 +189,6 @@ public class InvokeVirtual {
                             }
                             taints.add(taintNum);
                         }
-
                         if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
                             if (!printEvilMessage.contains(1)) {
                                 printEvilMessage.add(1);

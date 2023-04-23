@@ -19,6 +19,7 @@ public class InvokeInterface {
         boolean scriptEngineEval = owner.equals("javax/script/ScriptEngine") && name.equals("eval");
         boolean scriptEnginePut = owner.equals("javax/script/ScriptEngine") && name.equals("put");
         boolean isMethodAccessorInvoke = owner.equals("sun/reflect/MethodAccessor") && name.equals("invoke") && desc.equals("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+
         if (scriptEngineEval) {
             Set<Integer> taintList = argTaint.get(1);
             printOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine");

@@ -83,38 +83,33 @@
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
-            <version>9.5</version>
+            <version>5.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.ow2.asm/asm-commons -->
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-commons</artifactId>
-            <version>9.5</version>
+            <version>5.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.ow2.asm/asm-util -->
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-util</artifactId>
-            <version>9.5</version>
+            <version>5.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.ow2.asm/asm-tree -->
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-tree</artifactId>
-            <version>9.5</version>
+            <version>5.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.ow2.asm/asm-analysis -->
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-analysis</artifactId>
-            <version>9.5</version>
+            <version>5.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.github.houbb/asm-tool -->
-        <dependency>
-            <groupId>com.github.houbb</groupId>
-            <artifactId>asm-tool</artifactId>
-            <version>0.0.3</version>
-        </dependency>
+
 
 
         <!-- fileUtils -->
