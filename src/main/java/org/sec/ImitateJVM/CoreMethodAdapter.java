@@ -968,7 +968,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 // todo 3 在名单内的方法的调用，已预置哪个参数可以污染返回值 (?)
                 // 黑名单匹配 污点源
                 for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
-                    // 如果符合我们的白名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
+                    // 如果符合我们的黑名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
                     if ( passthrough[0].equals(owner) && passthrough[1].equals(name) && (passthrough[2].equals(desc) || passthrough[2].equals("*"))) {
                         for (int i = 3; i < passthrough.length; i++) {
                             resultTaint.addAll(argTaint.get((Integer) passthrough[i]));

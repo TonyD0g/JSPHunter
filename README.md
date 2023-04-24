@@ -26,11 +26,13 @@
 
 - //todo 解决继承,实现接口能导致绕过的问题
 
+- // todo 解决unicode编码导致JSPHunter报错而无法检测的问题
+
 
 
 # webshell bypass
 
-https://github.com/threedr3am/JSP-WebShells
+**1.https://github.com/threedr3am/JSP-WebShells**
 
 三个污点分析工具的检测率:
 
@@ -38,6 +40,29 @@ https://github.com/threedr3am/JSP-WebShells
 
 - JSPFinder:  4/29 ,  13%
 - JSPHunter: 29/29 , 100%
+
+
+
+**2.[JSPHorse-1.3.1](https://github.com/CrackerCat/JSPHorse)与JSPHunter(0.0.7)的初次对抗**
+
+- 成功检测出：
+  - Javac型
+  - classloader
+  - classloader-asm
+  - bcel
+  - bcel-asm
+
+- 未检测出：
+
+  - Base型
+  - expr型
+  - 所有进行unicode编码的，JSPHunter编译报错了,待解决
+
+- IDEA编译JSPHorse时报错了,未进行检测：
+
+  - js型
+
+  
 
 **目前正在优化检测逻辑,使检测率提高**
 
