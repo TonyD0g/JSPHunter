@@ -388,129 +388,125 @@ public class FindEvilDiscovery {
                     return;
                 }
 
-        }
-            if(opcode ==Opcodes.INVOKESTATIC){
-            boolean isValueOf = name.equals("valueOf") && desc.equals("(Ljava/lang/Object;)Ljava/lang/String;") && owner.equals("java/lang/String");
-            boolean isMethodUtilInvoke = owner.equals("sun/reflect/misc/MethodUtil") && name.equals("invoke") && desc.equals("(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
-            boolean JspRuntimeLibrary = owner.equals("org/apache/jasper/runtime/JspRuntimeLibrary") && name.equals("introspect") && desc.equals("(Ljava/lang/Object;Ljavax/servlet/ServletRequest;)V");
+            }
+            if (opcode == Opcodes.INVOKESTATIC) {
+                boolean isValueOf = name.equals("valueOf") && desc.equals("(Ljava/lang/Object;)Ljava/lang/String;") && owner.equals("java/lang/String");
+                boolean isMethodUtilInvoke = owner.equals("sun/reflect/misc/MethodUtil") && name.equals("invoke") && desc.equals("(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+                boolean JspRuntimeLibrary = owner.equals("org/apache/jasper/runtime/JspRuntimeLibrary") && name.equals("introspect") && desc.equals("(Ljava/lang/Object;Ljavax/servlet/ServletRequest;)V");
 
-            if ((isMethodUtilInvoke || JspRuntimeLibrary) && operandStack.get(0).size() > 0) {
-                Set<Integer> taints = new HashSet<>();
-                for (Object node : operandStack.get(0)) {
-                    if (node instanceof Integer) {
-                        int taintNum = (Integer) node;
-                        if (Constant.debug) {
-                            logger.info("MethodUtilInvoke 可被arg" + taintNum + "污染");
-                        }
-                        taints.add(taintNum);
-                        if (this.name.equals("_jspService")) {
-                            if (!printEvilMessage.contains(1)) {
-                                printEvilMessage.add(1);
-                                String msg = null;
-                                if(isMethodUtilInvoke){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   MethodUtil.invoke 可受request控制，该文件为webshell!!!";
-                                }else if(JspRuntimeLibrary){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   利用jsp标签属性注入字符串解析，该文件可疑,建议查看此文件进一步判断";
+                if ((isMethodUtilInvoke || JspRuntimeLibrary) && operandStack.get(0).size() > 0) {
+                    Set<Integer> taints = new HashSet<>();
+                    for (Object node : operandStack.get(0)) {
+                        if (node instanceof Integer) {
+                            int taintNum = (Integer) node;
+                            if (Constant.debug) {
+                                logger.info("MethodUtilInvoke 可被arg" + taintNum + "污染");
+                            }
+                            taints.add(taintNum);
+                            if (this.name.equals("_jspService")) {
+                                if (!printEvilMessage.contains(1)) {
+                                    printEvilMessage.add(1);
+                                    String msg = null;
+                                    if (isMethodUtilInvoke) {
+                                        msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   MethodUtil.invoke 可受request控制，该文件为webshell!!!";
+                                    } else if (JspRuntimeLibrary) {
+                                        msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   利用jsp标签属性注入字符串解析，该文件可疑,建议查看此文件进一步判断";
+                                    }
+
+                                    logger.info(msg);
+                                    Constant.evilClass.add(classFileName);
+                                    Constant.msgList.add(msg);
                                 }
-
-                                logger.info(msg);
-                                Constant.evilClass.add(classFileName);
-                                Constant.msgList.add(msg);
                             }
                         }
                     }
+                    toEvilTaint.put("MethodUtilInvoke", taints);
+                    super.visitMethodInsn(opcode, owner, name, desc, itf);
+                    return;
                 }
-                toEvilTaint.put("MethodUtilInvoke", taints);
-                super.visitMethodInsn(opcode, owner, name, desc, itf);
-                return;
+                if ((isValueOf) && operandStack.get(0).size() > 0) {
+                    Set taintList = operandStack.get(0);
+                    super.visitMethodInsn(opcode, owner, name, desc, itf);
+                    operandStack.get(0).addAll(taintList);
+                    return;
+                }
             }
-            if ((isValueOf ) && operandStack.get(0).size() > 0) {
-                Set taintList = operandStack.get(0);
-                super.visitMethodInsn(opcode, owner, name, desc, itf);
-                operandStack.get(0).addAll(taintList);
-                return;
+
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
+            //把调用其他方法获得的污点进行传递
+            if (retSize > 0) {
+                operandStack.get(retSize - 1).addAll(resultTaint);
             }
         }
 
-            super.
-
-        visitMethodInsn(opcode, owner, name, desc, itf);
-        //把调用其他方法获得的污点进行传递
-            if(retSize >0)
-
-        {
-            operandStack.get(retSize - 1).addAll(resultTaint);
-        }
-    }
-
-    @Override
-    public void visitIntInsn(int opcode, int operand) {
-        if (opcode == Opcodes.BIPUSH) {
+        @Override
+        public void visitIntInsn(int opcode, int operand) {
+            if (opcode == Opcodes.BIPUSH) {
+                super.visitIntInsn(opcode, operand);
+                operandStack.get(0).add(operand);
+                return;
+            }
             super.visitIntInsn(opcode, operand);
-            operandStack.get(0).add(operand);
-            return;
         }
-        super.visitIntInsn(opcode, operand);
-    }
 
 
-    @Override
-    public void visitInsn(int opcode) {
-        if (opcode == Opcodes.AASTORE) {
-            Set taintList = operandStack.get(0);
-            if (taintList.size() > 0) {
+        @Override
+        public void visitInsn(int opcode) {
+            if (opcode == Opcodes.AASTORE) {
+                Set taintList = operandStack.get(0);
+                if (taintList.size() > 0) {
+                    super.visitInsn(opcode);
+                    // 这里涉及一个很坑的问题，如果是p[i]="456"+p[i]+"123"这种情况，当执行aastore指令的时候，操作栈中只有三个，super.visitInsn(Opcodes.AASTORE)一调用，栈中空了，再取 operandStack.get(0)会报错
+                    if (operandStack.size() > 0) {
+                        operandStack.get(0).addAll(taintList);
+                    }
+                    return;
+                }
+            }
+            if (opcode == Opcodes.BASTORE) {
+                Set taintList = operandStack.get(0);
                 super.visitInsn(opcode);
-                // 这里涉及一个很坑的问题，如果是p[i]="456"+p[i]+"123"这种情况，当执行aastore指令的时候，操作栈中只有三个，super.visitInsn(Opcodes.AASTORE)一调用，栈中空了，再取 operandStack.get(0)会报错
-                if (operandStack.size() > 0) {
+                if (taintList.size() > 0) {
+                    for (Object tmpObj : operandStack.get(0)) {
+                        if (tmpObj instanceof ArrayList) {
+                            ((ArrayList) tmpObj).addAll(taintList);
+                            return;
+                        }
+                    }
+                    ArrayList list = new ArrayList<>();
+                    list.addAll(taintList);
+                    operandStack.set(0, list);
+                }
+                return;
+            }
+            if (opcode == Opcodes.AALOAD) {
+                //operandStack.get(1)为数组对象
+                Set taintList = operandStack.get(1);
+                super.visitInsn(opcode);
+                if (taintList.size() > 0) {
                     operandStack.get(0).addAll(taintList);
                 }
                 return;
             }
-        }
-        if (opcode == Opcodes.BASTORE) {
-            Set taintList = operandStack.get(0);
             super.visitInsn(opcode);
-            if (taintList.size() > 0) {
-                for (Object tmpObj : operandStack.get(0)) {
-                    if (tmpObj instanceof ArrayList) {
-                        ((ArrayList) tmpObj).addAll(taintList);
-                        return;
-                    }
-                }
-                ArrayList list = new ArrayList<>();
-                list.addAll(taintList);
-                operandStack.set(0, list);
-            }
-            return;
         }
-        if (opcode == Opcodes.AALOAD) {
-            //operandStack.get(1)为数组对象
-            Set taintList = operandStack.get(1);
-            super.visitInsn(opcode);
-            if (taintList.size() > 0) {
-                operandStack.get(0).addAll(taintList);
-            }
-            return;
-        }
-        super.visitInsn(opcode);
-    }
 
-    @Override
-    public void visitLdcInsn(Object cst) {
-        if (cst instanceof String) {
+        @Override
+        public void visitLdcInsn(Object cst) {
+            if (cst instanceof String) {
+                super.visitLdcInsn(cst);
+                operandStack.get(0).add(cst);
+                return;
+            }
             super.visitLdcInsn(cst);
-            operandStack.get(0).add(cst);
-            return;
         }
-        super.visitLdcInsn(cst);
+
+
+        public void superVisitMethod(int opcode, String owner, String name, String desc, boolean itf) {
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
+        }
+
     }
-
-
-    public void superVisitMethod(int opcode, String owner, String name, String desc, boolean itf) {
-        super.visitMethodInsn(opcode, owner, name, desc, itf);
-    }
-
-}
 
 }
 

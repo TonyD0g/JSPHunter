@@ -649,23 +649,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
     }
 
     /**
-     * 赋值token给Var 格式: instruction-token-var-isExit
-     */
-    public void setTokenWithVar(int var) {
-        Set instruction = new HashSet<>();
-        // 如果 isExit 为 0的话,说明token没有赋值,需要赋值,否则不赋值token
-        Set sets = localVariables.get(var);
-        for (Object set : sets) {
-            if (set instanceof String && ((String) set).indexOf("instruction") > -1 && new Integer(stringUtils.splitBySymbol((String) set, "-")[3]) == 0) {
-                instruction.add("instruction" + "-" + CoreMethodAdapter.token + "-" + var + "-" + 1);
-                localVariables.get(var).addAll(instruction);
-            } else {
-
-            }
-        }
-    }
-
-    /**
      * 通过模拟栈帧,对被使用的变量分别下标记
      * var: 在LV中的下标
      */

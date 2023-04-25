@@ -3,7 +3,6 @@ D:\Coding\JSPHunter\src\main\java\org\sec\Scan\PassthroughDiscovery.java
 D:\Coding\JSPHunter\src\main\java\org\sec\utils\InputUtils.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Main.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Data\DataFactory.java
-D:\Coding\JSPHunter\src\main\java\org\sec\Http\CookieStoreParams.java
 D:\Coding\JSPHunter\src\main\java\org\sec\utils\stringUtils.java
 D:\Coding\JSPHunter\src\main\java\org\sec\ImitateJVM\CoreMethodAdapter.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Scan\JVMMethodScan\InvokeVirtual.java
@@ -23,10 +22,8 @@ D:\Coding\JSPHunter\src\main\java\org\sec\JSP\JspAnalysis.java
 D:\Coding\JSPHunter\src\main\java\org\sec\input\Command.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Data\MethodReference.java
 D:\Coding\JSPHunter\src\main\java\org\sec\ImitateJVM\GotoState.java
-D:\Coding\JSPHunter\src\main\java\org\sec\start\Base.java
 D:\Coding\JSPHunter\src\main\java\org\sec\utils\ArrayUtils\DynamicArray.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Data\DataLoader.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Scan\JVMMethodScan\InvokeInterface.java
 D:\Coding\JSPHunter\src\main\java\org\sec\input\CommandChoice.java
 D:\Coding\JSPHunter\src\main\java\org\sec\utils\FileUtils.java
-D:\Coding\JSPHunter\src\main\java\org\sec\Http\ConnectAbstract.java

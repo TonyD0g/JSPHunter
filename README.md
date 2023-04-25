@@ -39,9 +39,10 @@
 - JSPKiler: 待测
 
 - JSPFinder:  4/29 ,  13%
+
 - JSPHunter: 29/29 , 100%
 
-
+  
 
 **2.[JSPHorse-1.3.1](https://github.com/CrackerCat/JSPHorse)与JSPHunter(0.0.7)的初次对抗**
 
@@ -62,7 +63,12 @@
 
   - js型
 
+    
   
+
+**3.[浅谈JspWebshell之编码](https://tttang.com/archive/1840/)**
+
+
 
 **目前正在优化检测逻辑,使检测率提高**
 

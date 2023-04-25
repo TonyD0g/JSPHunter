@@ -22,27 +22,27 @@ public class InvokeInterface {
 
         if (scriptEngineEval) {
             Set<Integer> taintList = argTaint.get(1);
-            printOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine");
+            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine");
         }
 
         if (scriptEnginePut) {
             Set<Integer> taintList = argTaint.get(2);
-            printOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine");
+            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine");
         }
         if (isMethodAccessorInvoke) {
             Set<Integer> taintList = argTaint.get(0);
-            printOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "MethodAccessor.Invoke");
+            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "MethodAccessor.Invoke");
         }
         return "";
     }
 
-    public static void printOutcome(Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, Set<Integer> taintList, String evilOwner) {
+    public static void outPutEvilOutcome(Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, Set<Integer> taintList, String evilType) {
         Set tmpTaintList = new HashSet();
         for (Object taint : taintList) {
             if (taint instanceof Integer || (taint instanceof String )) {
                 if (!printEvilMessage.contains(1)) {
                     printEvilMessage.add(1);
-                    String msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ " + evilOwner + " 可受request控制或其直接传入shellcode，该文件可能为webshell!!!,建议查看此文件进一步确认";
+                    String msg = "[+] " + "(检测结果: 可疑) " + Constant.classNameToJspName.get(classFileName) + "   使用了" + evilType + "，建议查看此文件进一步判断!";
                     logger.info(msg);
                     Constant.evilClass.add(classFileName);
                     Constant.msgList.add(msg);
@@ -50,6 +50,6 @@ public class InvokeInterface {
                 tmpTaintList.add(taint);
             }
         }
-        toEvilTaint.put(evilOwner, tmpTaintList);
+        toEvilTaint.put(evilType, tmpTaintList);
     }
 }

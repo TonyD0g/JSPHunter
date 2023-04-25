@@ -39,16 +39,9 @@ public class InvokeVirtual {
         boolean ExpressionFactory = (owner.equals("javax/el/ExpressionFactory") && name.equals("createValueExpression") && desc.equals("(Ljavax/el/ELContext;Ljava/lang/String;Ljava/lang/Class;)Ljavax/el/ValueExpression;"));
         boolean readObject = (name.equals("readObject") && desc.equals("()Ljava/lang/Object;"));
 
-        if(readObject){
+        if (readObject) {
             if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
-                if (!printEvilMessage.contains(1)) {
-                    printEvilMessage.add(1);
-                    String msg = null;
-                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------调用了 readObject，可能为重写ObjectInputStream.resolveClass型webshell.,建议查看此文件进一步判断!";
-                    logger.info(msg);
-                    Constant.evilClass.add(classFileName);
-                    Constant.msgList.add(msg);
-                }
+                outPutEvilOutcome(printEvilMessage, classFileName, "readObject,可能为重写ObjectInputStream.resolveClass型webshell", 2);
             }
             return "void";
         }
@@ -69,13 +62,7 @@ public class InvokeVirtual {
                         }
 
                         if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
-                            if (!printEvilMessage.contains(1)) {
-                                printEvilMessage.add(1);
-                                String msg = Constant.classNameToJspName.get(classFileName) + "------ExpressionFactory 可受request控制，该文件为webshell";
-                                logger.info(msg);
-                                Constant.evilClass.add(classFileName);
-                                Constant.msgList.add(msg);
-                            }
+                            outPutEvilOutcome(printEvilMessage, classFileName, "ExpressionFactory,且参数外部可控", 1);
                         }
                     }
                 }
@@ -112,13 +99,13 @@ public class InvokeVirtual {
                     //因为前面各种方法传递、运算 字符串才会在这里得到完整得结果
                     if (taintList.contains("java.lang.ProcessBuilder") || taintList.contains("java.lang.Runtime")) {
                         //这种情况就是企图反射调用java.lang.ProcessBuilder或者java.lang.Runtime。直接调用命令执行方法可能是程序的正常业务功能，但反射调用命令执行方法基本就是攻击者行为。
-                        outputEvilFilename(printEvilMessage, classFileName);
+                        outPutEvilOutcome(printEvilMessage, classFileName, "ProcessBuilder 或 Runtime,且参数外部可控", 1);
                     }
                     k++;
                 }
             }
             if (findEvilDataflowMethodVisitor.operandStack.get(k).contains("java.lang.ProcessBuilder") || findEvilDataflowMethodVisitor.operandStack.get(k).contains("java.lang.Runtime")) {
-                outputEvilFilename(printEvilMessage, classFileName);
+                outPutEvilOutcome(printEvilMessage, classFileName, "ProcessBuilder 或 Runtime,且参数外部可控", 1);
             }
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
             return "void";
@@ -182,7 +169,7 @@ public class InvokeVirtual {
                 int taintNum;
                 for (Object node : findEvilDataflowMethodVisitor.operandStack.get(0)) {
                     if (node instanceof Integer || (node instanceof String && ((String) node).contains("instruction"))) {
-                        if(node instanceof Integer){
+                        if (node instanceof Integer) {
                             taintNum = (Integer) node;
                             if (Constant.debug) {
                                 logger.info("Runtime.exec可被arg" + taintNum + "污染");
@@ -190,43 +177,36 @@ public class InvokeVirtual {
                             taints.add(taintNum);
                         }
                         if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
-                            if (!printEvilMessage.contains(1)) {
-                                printEvilMessage.add(1);
-                                String msg = null;
-                                if(exec){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------Runtime.exec 可受request控制，该文件为webshell!!!";
-                                }else if(ProcessBuilderCommand) {
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ProcessBuilder 可受request控制，该文件为webshell!!!";
-                                } else if(newInstance){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------newInstance 可受request控制，该文件可能为webshell!!!,建议查看此文件";
-                                }else if(JdbcRowSetImpl){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------JdbcRowSetImpl.setDataSourceName 可受request控制，该文件可能为webshell!!!,建议查看此文件";
-                                }else if(URLClassloader || TemplatesImpl){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------URLClassloader.loadClass 或 TemplatesImpl 可受request控制，该文件可能为webshell!!!,建议查看此文件";
-                                }else if(ELProcessor){
-                                    msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------ELProcessor.eval 可受request控制，该文件为webshell!!!";
-                                }
-                                logger.info(msg);
-                                Constant.evilClass.add(classFileName);
-                                Constant.msgList.add(msg);
+                            if (exec) {
+                                outPutEvilOutcome(printEvilMessage, classFileName, "Runtime.exec,且参数外部可控", 1);
+                            } else if (ProcessBuilderCommand) {
+                                outPutEvilOutcome(printEvilMessage, classFileName, "ProcessBuilder,且参数外部可控", 1);
+                            } else if (newInstance) {
+                                outPutEvilOutcome(printEvilMessage, classFileName, "newInstance,且参数外部可控", 2);
+                            } else if (JdbcRowSetImpl) {
+                                outPutEvilOutcome(printEvilMessage, classFileName, "JdbcRowSetImpl.setDataSourceName,且参数外部可控", 2);
+                            } else if (URLClassloader || TemplatesImpl) {
+                                outPutEvilOutcome(printEvilMessage, classFileName, "URLClassloader.loadClass 或 TemplatesImpl,且参数外部可控", 2);
+                            } else if (ELProcessor) {
+                                outPutEvilOutcome(printEvilMessage, classFileName, "ELProcessor.eval,且参数外部可控", 1);
                             }
                         }
                     }
                 }
                 //将能够流入到Runtime.exec方法中的入参标记为污染点
-                if(exec){
+                if (exec) {
                     toEvilTaint.put("Runtime", taints);
-                }else if(ProcessBuilderCommand){
+                } else if (ProcessBuilderCommand) {
                     toEvilTaint.put("ProcessBuilder", taints);
-                }else if(newInstance){
+                } else if (newInstance) {
                     toEvilTaint.put("newInstance", taints);
-                }else if(JdbcRowSetImpl){
+                } else if (JdbcRowSetImpl) {
                     toEvilTaint.put("JdbcRowSetImpl", taints);
-                }else if(URLClassloader){
+                } else if (URLClassloader) {
                     toEvilTaint.put("URLClassloader", taints);
-                }else if(TemplatesImpl){
+                } else if (TemplatesImpl) {
                     toEvilTaint.put("TemplatesImpl", taints);
-                }else if(ELProcessor){
+                } else if (ELProcessor) {
                     toEvilTaint.put("ELProcessor", taints);
                 }
                 findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
@@ -277,13 +257,7 @@ public class InvokeVirtual {
                         for (Object tmpTaint : tmpTaints) {
                             //表示入参可以污染到defineClass方法的参数
                             if (tmpTaint instanceof Integer) {
-                                if (!printEvilMessage.contains(1)) {
-                                    printEvilMessage.add(1);
-                                    String msg = Constant.classNameToJspName.get(classFileName) + "------defineClass方法反射调用后，参数可受request控制，该文件为冰蝎/哥斯拉/天蝎变种webshell";
-                                    logger.info(msg);
-                                    Constant.evilClass.add(classFileName);
-                                    Constant.msgList.add(msg);
-                                }
+                                outPutEvilOutcome(printEvilMessage,classFileName,"defineClass,且参数外部可控",1);
                                 numTains.add((Integer) tmpTaint);
                             }
                         }
@@ -295,10 +269,15 @@ public class InvokeVirtual {
         return "";
     }
 
-    private void outputEvilFilename(Set<Integer> printEvilMessage, String classFileName) {
+    private void outPutEvilOutcome(Set<Integer> printEvilMessage, String classFileName, String evilType, int anomalyDegree) {
         if (!printEvilMessage.contains(1)) {
             printEvilMessage.add(1);
-            String msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------企图调用ProcessBuilder或Runtime，该文件为webshell";
+            String msg;
+            if (anomalyDegree == 1) {
+                msg = "[+] " + "(检测结果: 恶意) " + Constant.classNameToJspName.get(classFileName) + "   使用了" + evilType + "，该文件为webshell";
+            } else {
+                msg = "[+] " + "(检测结果: 可疑) " + Constant.classNameToJspName.get(classFileName) + "   使用了" + evilType + "，建议查看此文件进一步判断!";
+            }
             logger.info(msg);
             Constant.evilClass.add(classFileName);
             Constant.msgList.add(msg);

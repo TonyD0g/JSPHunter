@@ -2,16 +2,19 @@ package org.sec.JSP;
 
 import org.apache.jasper.JspC;
 import org.apache.log4j.Logger;
+import org.sec.Constant.Constant;
 
 import java.util.ArrayList;
 
 public class JspAnalysis {
     private static final Logger logger = Logger.getLogger(JspAnalysis.class);
+
     /**
      * 利用 jasper 编译 java 文件为 jsp 文件
      */
     public static void jasper(String webDir, String classPath, String file, ArrayList<String> jspFilePathList) {
         int flag = 0;
+        Integer i = 0;
         for (String jspFilePath : jspFilePathList) {
             try {
                 // 设置一些编译环境
@@ -32,10 +35,13 @@ public class JspAnalysis {
                 jspc.execute();
                 flag = 0;
             } catch (Exception e) {
-                if(flag == 0){
+                i++;
+                if (flag == 0) {
                     logger.info("[-] The jsp file is error! : " + file);
-                }else{
+                    Constant.compileErrorFileNameList.put(i, file);
+                } else {
                     logger.info("[-] The jsp file is error! : " + jspFilePath);
+                    Constant.compileErrorFileNameList.put(i, jspFilePath);
                 }
             }
         }

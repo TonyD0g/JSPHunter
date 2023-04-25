@@ -26,7 +26,7 @@ public class Application {
         JCommander jc = JCommander.newBuilder().addObject(command).build();
         jc.parse(args);
 
-        CommandChoiceTest commandChoiceTest = new CommandChoiceTest(command, jc);
+        CommandChoiceTest commandChoiceTest = new CommandChoiceTest();
         if (!commandChoiceTest.commandChoiceOverWrite(command, jc)) {
             logger.info("[-] Don't have this choice,Please repeat to choice!");
         }
@@ -37,7 +37,7 @@ public class Application {
 class CommandChoiceTest extends CommandChoice {
     private static final Logger logger = Logger.getLogger(CommandChoiceTest.class);
 
-    public CommandChoiceTest(Command command, JCommander jc) {
+    public CommandChoiceTest() {
         super();
     }
 
@@ -64,7 +64,6 @@ class CommandChoiceTest extends CommandChoice {
                 //suspicious(command);
                 break;
         }
-
         return true;
     }
 
@@ -129,7 +128,9 @@ class CommandChoiceTest extends CommandChoice {
                 // 扫描是否存在恶意利用链
                 FindEvilDiscovery findEvilDiscovery = new FindEvilDiscovery();
                 findEvilDiscovery.discover();
-                System.out.println("\n---------------------------------------------------------------------------\n" + "[+] 扫描结束");
+                System.out.println("[-] jasper编译失败的文件:");
+                System.out.println(Constant.compileErrorFileNameList);
+                System.out.println("\n---------------------------------------------------------------------------\n" + "[+] 扫描结束\n(JSPHunter版本: 0.0.8)");
 
                 //删除编译文件
                 FileUtils.delete(new File("JspCompile"));
