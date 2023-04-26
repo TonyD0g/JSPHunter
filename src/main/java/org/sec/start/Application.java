@@ -49,25 +49,16 @@ class CommandChoiceTest extends CommandChoice {
         if (!CommandChoice.CommandChoice(command, jc)) {
             return false;
         }
-        String module = command.module;
-        switch (module) {
-            // 基础分析
-            case "b":
-                Application.logger.info("[+] Use Basic Analyse");
-                Analysis(command, jc);
-                //basic(command);
-                break;
-            // 可疑分析
-            case "e":
-                Application.logger.info("[+] Use Extend Analyse");
-                Analysis(command, jc);
-                //suspicious(command);
-                break;
+        boolean delete = command.delete;
+        if (delete) {
+            Analysis(command, true);
+        } else {
+            Analysis(command, false);
         }
         return true;
     }
 
-    public static void Analysis(Command command, JCommander jc) throws IOException, ClassNotFoundException {
+    public static void Analysis(Command command, boolean delete) throws IOException, ClassNotFoundException {
         if (command.dict != null) {
             // 获取webDir目录下的所有文件，并放置在一个hashSet中
             Set<String> fileArray = new HashSet<>();
@@ -86,15 +77,15 @@ class CommandChoiceTest extends CommandChoice {
                 ArrayList<String> jspFilePathList = new ArrayList<>();
                 FileUtils.getWantSuffixFilePath(webDir, "jsp", jspFilePathList);
                 ArrayList<String> jarFilePath = new ArrayList<>();
-                String classPath = "";
+                StringBuilder classPath = new StringBuilder();
                 if (command.classPath != null) {
                     FileUtils.getWantSuffixFilePath(command.classPath, "jar", jarFilePath);
                     for (String jarFileName : jarFilePath) {
-                        classPath = classPath + File.pathSeparator + jarFileName;
+                        classPath.append(File.pathSeparator).append(jarFileName);
                     }
                 }
                 // 使用 jasper 去编译
-                JspAnalysis.jasper(webDir, classPath, command.file, jspFilePathList);
+                JspAnalysis.jasper(webDir, classPath.toString(), command.file, jspFilePathList);
 
                 ArrayList<String> classFileNameList = new ArrayList<>();
                 FileUtils.getWantSuffixFilePath("JspCompile", "class", classFileNameList);
@@ -127,10 +118,13 @@ class CommandChoiceTest extends CommandChoice {
                 passthroughDiscovery.discover();
                 // 扫描是否存在恶意利用链
                 FindEvilDiscovery findEvilDiscovery = new FindEvilDiscovery();
-                findEvilDiscovery.discover();
-                System.out.println("[-] jasper编译失败的文件:");
-                System.out.println(Constant.compileErrorFileNameList);
-                System.out.println("\n---------------------------------------------------------------------------\n" + "[+] 扫描结束\n(JSPHunter版本: 0.0.8)");
+                findEvilDiscovery.discover(delete);
+                if (Constant.compileErrorFileNameList.size() != 0) {
+                    System.out.println("[-] jasper编译失败的文件:");
+                    System.out.println(Constant.compileErrorFileNameList);
+                    System.out.println("\n---------------------------------------------------------------------------\n" + "[+] 扫描结束");
+
+                }
 
                 //删除编译文件
                 FileUtils.delete(new File("JspCompile"));

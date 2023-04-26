@@ -360,6 +360,21 @@ public class FileUtils {
         }
     }
 
+    /** 根据传入的fileName (String)去删除 */
+    public static void deleteFile(String dirPath) {
+        File file = new File(dirPath);
+        if (file.isDirectory()) {
+            String[] dirPathList = file.list();
+            for (int i = 0; i < dirPathList.length; i++) {
+                String filePath = dirPath + File.separator + dirPathList[i];
+                File fileDelete = new File(filePath);
+                if (fileDelete.getName().equals("test1111.txt")) {
+                    fileDelete.delete();
+                }
+            }
+        }
+    }
+
 
     /**
      * 获取输入流

@@ -19,17 +19,17 @@ import java.util.*;
 public class FindEvilDiscovery {
     private static final Logger logger = Logger.getLogger(FindEvilDiscovery.class);
 
-    public void discover() {
-        findEvilDataflow();
+    public void discover(boolean delete) {
+        findEvilDataflow(delete);
     }
 
-    private void findEvilDataflow() {
+    private void findEvilDataflow(boolean delete) {
         final Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow = new HashMap<>();
         for (MethodReference.Handle methodToVisit : Constant.sortedMethodCalls) {
             String className = methodToVisit.getOwner().substring(methodToVisit.getOwner().lastIndexOf("/") + 1);
             byte[] classByte = Constant.classNameToByte.get(className);
             ClassReader cr = new ClassReader(classByte);
-            FindEvilDataflowClassVisitor findEvilDataflowClassVisitor = new FindEvilDataflowClassVisitor(EvilDataflow, Opcodes.ASM5, methodToVisit, Constant.classNameToClassFileName.get(className));
+            FindEvilDataflowClassVisitor findEvilDataflowClassVisitor = new FindEvilDataflowClassVisitor(EvilDataflow, Opcodes.ASM5, methodToVisit, Constant.classNameToClassFileName.get(className), delete);
             cr.accept(findEvilDataflowClassVisitor, ClassReader.EXPAND_FRAMES);
         }
     }
@@ -42,11 +42,14 @@ public class FindEvilDiscovery {
         private final String classFileName;
         private final Set<Integer> printEvilMessage = new HashSet<>();
 
-        public FindEvilDataflowClassVisitor(Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow, int api, MethodReference.Handle methodToVisit, String classFileName) {
+        private boolean isDelete = false;
+
+        public FindEvilDataflowClassVisitor(Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow, int api, MethodReference.Handle methodToVisit, String classFileName, boolean delete) {
             super(api);
             this.EvilDataflow = EvilDataflow;
             this.methodToVisit = methodToVisit;
             this.classFileName = classFileName;
+            this.isDelete = delete;
         }
 
         @Override
@@ -64,7 +67,7 @@ public class FindEvilDiscovery {
                 if (Constant.debug) {
                     logger.info("观察的类为:" + this.name + "     观察的方法为:" + name);
                 }
-                findEvilDataflowMethodVisitor = new FindEvilDataflowMethodVisitor(EvilDataflow, Opcodes.ASM5, access, descriptor, mv, this.name, name, signature, exceptions, classFileName, printEvilMessage);
+                findEvilDataflowMethodVisitor = new FindEvilDataflowMethodVisitor(EvilDataflow, Opcodes.ASM5, access, descriptor, mv, this.name, name, signature, exceptions, classFileName, printEvilMessage, isDelete);
                 EvilDataflow.put(new MethodReference.Handle(this.name, name, descriptor), getReturnTaint());
                 return new JSRInlinerAdapter(findEvilDataflowMethodVisitor, access, name, descriptor, signature, exceptions);
             }
@@ -90,7 +93,9 @@ public class FindEvilDiscovery {
         public String classFileName;
         public Set<Integer> printEvilMessage;
 
-        public FindEvilDataflowMethodVisitor(Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow, int api, int access, String desc, MethodVisitor mv, String owner, String name, String signature, String[] exceptions, String classFileName, Set<Integer> printEvilMessage) {
+        private boolean isDelete;
+
+        public FindEvilDataflowMethodVisitor(Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow, int api, int access, String desc, MethodVisitor mv, String owner, String name, String signature, String[] exceptions, String classFileName, Set<Integer> printEvilMessage, boolean isDelete) {
             super(api, mv, owner, access, name, desc, signature, exceptions);
             this.EvilDataflow = EvilDataflow;
             this.toEvilTaint = new HashMap<>();
@@ -101,6 +106,7 @@ public class FindEvilDiscovery {
             this.isStatic = (access & Opcodes.ACC_STATIC) != 0;
             this.classFileName = classFileName;
             this.printEvilMessage = printEvilMessage;
+            this.isDelete = isDelete;
         }
 
         @Override
@@ -259,11 +265,11 @@ public class FindEvilDiscovery {
             // 下面的switch判断是要开始 处理污点断点分析结果 (上面分析完毕了,该进行输出结果了)
             switch (opcode) {
                 case Opcodes.INVOKEINTERFACE:
-                    voidType = InvokeInterface.analysis(owner, name, desc, argTaint, printEvilMessage, classFileName, toEvilTaint, this);
+                    voidType = InvokeInterface.analysis(owner, name, desc, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
                     break;
                 case Opcodes.INVOKEVIRTUAL:
                     InvokeVirtual invokeVirtual = new InvokeVirtual();
-                    voidType = invokeVirtual.analysis(opcode, owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint);
+                    voidType = invokeVirtual.analysis(opcode, owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
                     break;
             }
             if (Objects.equals(voidType, "void")) {
@@ -330,13 +336,7 @@ public class FindEvilDiscovery {
                                 }
                                 taints.add(taintNum);
                                 if (this.name.equals("_jspService")) {
-                                    if (!printEvilMessage.contains(1)) {
-                                        printEvilMessage.add(1);
-                                        String msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   ProcessBuilder可受request控制，该文件为webshell!!!";
-                                        logger.info(msg);
-                                        Constant.evilClass.add(classFileName);
-                                        Constant.msgList.add(msg);
-                                    }
+                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "ProcessBuilder,且外部可控", 1, this.isDelete);
                                 }
                             }
                         }
@@ -370,15 +370,8 @@ public class FindEvilDiscovery {
                                     }
                                     taints.add(taintNum);
                                 }
-
                                 if (this.name.equals("_jspService")) {
-                                    if (!printEvilMessage.contains(1)) {
-                                        printEvilMessage.add(1);
-                                        String msg = Constant.classNameToJspName.get(classFileName) + "------defineClass或URLClassLoaderInit可受request控制，该文件为webshell";
-                                        logger.info(msg);
-                                        Constant.evilClass.add(classFileName);
-                                        Constant.msgList.add(msg);
-                                    }
+                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "defineClass或URLClassLoaderInit,且受外部控制", 1, this.isDelete);
                                 }
                             }
                         }
@@ -404,26 +397,18 @@ public class FindEvilDiscovery {
                             }
                             taints.add(taintNum);
                             if (this.name.equals("_jspService")) {
-                                if (!printEvilMessage.contains(1)) {
-                                    printEvilMessage.add(1);
-                                    String msg = null;
-                                    if (isMethodUtilInvoke) {
-                                        msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   MethodUtil.invoke 可受request控制，该文件为webshell!!!";
-                                    } else if (JspRuntimeLibrary) {
-                                        msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   利用jsp标签属性注入字符串解析，该文件可疑,建议查看此文件进一步判断";
-                                    }
-
-                                    logger.info(msg);
-                                    Constant.evilClass.add(classFileName);
-                                    Constant.msgList.add(msg);
+                                if (isMethodUtilInvoke) {
+                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "MethodUtil.invoke", 1, this.isDelete);
+                                } else if (JspRuntimeLibrary) {
+                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, this.isDelete);
                                 }
                             }
                         }
                     }
-                    toEvilTaint.put("MethodUtilInvoke", taints);
                     super.visitMethodInsn(opcode, owner, name, desc, itf);
                     return;
                 }
+
                 if ((isValueOf) && operandStack.get(0).size() > 0) {
                     Set taintList = operandStack.get(0);
                     super.visitMethodInsn(opcode, owner, name, desc, itf);

@@ -44,7 +44,7 @@
 
   
 
-**2.[JSPHorse-1.3.1](https://github.com/CrackerCat/JSPHorse)与JSPHunter(0.0.7)的初次对抗**
+**2.[JSPHorse-1.3.1](https://github.com/CrackerCat/JSPHorse)与JSPHunter(0.0.8)的对抗**
 
 - 成功检测出：
   - Javac型
@@ -52,13 +52,13 @@
   - classloader-asm
   - bcel
   - bcel-asm
-
-- 未检测出：
-
   - Base型
   - expr型
-  - 所有进行unicode编码的，JSPHunter编译报错了,待解决
+  
+- 未检测出：
 
+  - 所有进行unicode编码的，JSPHunter编译报错了,待解决
+  
 - IDEA编译JSPHorse时报错了,未进行检测：
 
   - js型
@@ -85,10 +85,14 @@
 # 使用方法
 
 ```md
-java -cp JSPHunter.jar org.sec.Main -d "要扫描的tomcat路径" -cp "tomcat\lib" -m b 
+java -cp JSPHunter.jar org.sec.Main
+
+-d "要扫描的tomcat路径"
+-cp "tomcat依赖"
+-del // 加此参数会自动删除恶意shell,不会删除可疑文件
 
 如：
-java -cp JSPHunter.jar org.sec.Main -d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -m b 
+java -cp JSPHunter.jar org.sec.Main -d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -del 
 ```
 
 

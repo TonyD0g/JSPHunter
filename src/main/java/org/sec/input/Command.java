@@ -12,8 +12,8 @@ public  class Command {
     @Parameter(names = {"-d", "--dict"}, description = "Webshell Dict")
     public String dict;
 
-    @Parameter(names = {"-m", "--module"}, description = "Scan Module")
-    public String module;
+    @Parameter(names = {"-del", "--delete"}, description = "delete shell")
+    public boolean delete;
 
     @Parameter(names = {"-cp", "--classpath"}, description = "指定容器的依赖jar包(tomcat例为:D:\\apache-tomcat-8.0.50\\lib)")
     public String classPath;

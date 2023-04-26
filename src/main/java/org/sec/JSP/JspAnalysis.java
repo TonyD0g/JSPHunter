@@ -4,6 +4,7 @@ import org.apache.jasper.JspC;
 import org.apache.log4j.Logger;
 import org.sec.Constant.Constant;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class JspAnalysis {
@@ -38,10 +39,10 @@ public class JspAnalysis {
                 i++;
                 if (flag == 0) {
                     logger.info("[-] The jsp file is error! : " + file);
-                    Constant.compileErrorFileNameList.put(i, file);
+                    Constant.compileErrorFileNameList.put(i, file.substring(file.lastIndexOf(File.separator) + 1));
                 } else {
                     logger.info("[-] The jsp file is error! : " + jspFilePath);
-                    Constant.compileErrorFileNameList.put(i, jspFilePath);
+                    Constant.compileErrorFileNameList.put(i, jspFilePath.substring(jspFilePath.lastIndexOf(File.separator) + 1));
                 }
             }
         }

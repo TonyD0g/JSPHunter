@@ -14,7 +14,7 @@ import java.util.Set;
 public class InvokeInterface {
     private static final Logger logger = Logger.getLogger(InvokeInterface.class);
 
-    public static String analysis(String owner, String name, String desc, List<Set<Integer>> argTaint, Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, FindEvilDiscovery.FindEvilDataflowMethodVisitor findEvilDataflowMethodVisitor) {
+    public static String analysis(String owner, String name, String desc, List<Set<Integer>> argTaint, Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, boolean isDelete) {
 
         boolean scriptEngineEval = owner.equals("javax/script/ScriptEngine") && name.equals("eval");
         boolean scriptEnginePut = owner.equals("javax/script/ScriptEngine") && name.equals("put");
@@ -22,31 +22,25 @@ public class InvokeInterface {
 
         if (scriptEngineEval) {
             Set<Integer> taintList = argTaint.get(1);
-            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine");
+            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine", 1, isDelete);
         }
 
         if (scriptEnginePut) {
             Set<Integer> taintList = argTaint.get(2);
-            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine");
+            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine", 1, isDelete);
         }
         if (isMethodAccessorInvoke) {
             Set<Integer> taintList = argTaint.get(0);
-            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "MethodAccessor.Invoke");
+            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "MethodAccessor.Invoke", 1, isDelete);
         }
         return "";
     }
 
-    public static void outPutEvilOutcome(Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, Set<Integer> taintList, String evilType) {
+    public static void outPutEvilOutcome(Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, Set<Integer> taintList, String evilType, int anomalyDegree, boolean isDelete) {
         Set tmpTaintList = new HashSet();
         for (Object taint : taintList) {
-            if (taint instanceof Integer || (taint instanceof String )) {
-                if (!printEvilMessage.contains(1)) {
-                    printEvilMessage.add(1);
-                    String msg = "[+] " + "(检测结果: 可疑) " + Constant.classNameToJspName.get(classFileName) + "   使用了" + evilType + "，建议查看此文件进一步判断!";
-                    logger.info(msg);
-                    Constant.evilClass.add(classFileName);
-                    Constant.msgList.add(msg);
-                }
+            if (taint instanceof Integer || (taint instanceof String)) {
+                InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, evilType, anomalyDegree, isDelete);
                 tmpTaintList.add(taint);
             }
         }

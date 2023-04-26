@@ -13,9 +13,8 @@ public class Main {
 
         Logo.PrintLogo();
         logger.info("start JSPHunter application");
-        logger.info("please wait 5 second...");
-
         // 运行主逻辑
         Application.start(args);
+        System.out.println("(Version:   0.0.9)");
     }
 }

@@ -59,7 +59,7 @@
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
       <module name="SafeTools-Boot" />
-      <option name="PROGRAM_PARAMETERS" value="-d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -m b" />
+      <option name="PROGRAM_PARAMETERS" value="-d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib  -del" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -198,6 +198,7 @@
       <workItem from="1682426939549" duration="3339000" />
       <workItem from="1682430290162" duration="3573000" />
       <workItem from="1682434023258" duration="95000" />
+      <workItem from="1682506800781" duration="9073000" />
     </task>
     <servers />
   </component>
