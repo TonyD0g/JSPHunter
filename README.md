@@ -1,8 +1,8 @@
 # JSPHunter [Java 8]
 
-**基于污点分析和模拟栈帧技术的JSP Webshell检测**    `仅做学习记录`
+**基于污点分析和模拟栈帧技术的JSP Webshell检测**     `仅做学习记录`
 
-我发现JSPFinder和JSPKiller模拟栈帧的部分几乎一致，因此不重复造轮子，直接在JSPFinder的基础上进行改进,所以**85%**代码来源于JSPFinder和JSPKiller,感激这两个作品的作者.   
+我发现JSPFinder和JSPKiller模拟栈帧的部分几乎一致，因此不重复造轮子，直接在JSPFinder的基础上进行改进,所以 **85%** 代码来源于JSPFinder和JSPKiller,感激这两个作品的作者.   
 
 尝试对其进行优化检测逻辑和重构,以作为自己学习污点分析和模拟栈帧技术的检验和毕业设计.
 
@@ -23,12 +23,7 @@
 # TODO
 
 - // todo 将污点源黑名单导出到一个文件中,使用fileUtils去读取,方便于扩展
-
 - //todo 解决继承,实现接口能导致绕过的问题
-
-- // todo 解决unicode编码导致JSPHunter报错而无法检测的问题
-
-
 
 # webshell bypass
 
@@ -42,29 +37,10 @@
 
 - JSPHunter: 29/29 , 100%
 
-  
 
-**2.[JSPHorse-1.3.1](https://github.com/CrackerCat/JSPHorse)与JSPHunter(0.0.8)的对抗**
+**2.[JSPHorse-1.3.1](https://github.com/CrackerCat/JSPHorse)与JSPHunter(0.0.9)的对抗**
 
-- 成功检测出：
-  - Javac型
-  - classloader
-  - classloader-asm
-  - bcel
-  - bcel-asm
-  - Base型
-  - expr型
-  
-- 未检测出：
-
-  - 所有进行unicode编码的，JSPHunter编译报错了,待解决
-  
-- IDEA编译JSPHorse时报错了,未进行检测：
-
-  - js型
-
-    
-  
+​	已能全部检测出来
 
 **3.[浅谈JspWebshell之编码](https://tttang.com/archive/1840/)**
 
