@@ -3,6 +3,7 @@ package org.sec.Scan.JVMMethodScan;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.Type;
 import org.sec.Constant.Constant;
+import org.sec.ImitateJVM.DebugOption;
 import org.sec.Scan.FindEvilDiscovery;
 import org.sec.utils.FileUtils;
 
@@ -56,7 +57,7 @@ public class InvokeVirtual {
                     if (node instanceof Integer || ((node instanceof String && ((String) node).contains("instruction")))) {
                         if (node instanceof Integer) {
                             taintNum = (Integer) node;
-                            if (Constant.debug) {
+                            if (DebugOption.userDebug) {
                                 logger.info("ClassLoader的defineClass可被arg" + taintNum + "污染");
                             }
                             taints.add(taintNum);
@@ -172,7 +173,7 @@ public class InvokeVirtual {
                     if (node instanceof Integer || (node instanceof String && ((String) node).contains("instruction"))) {
                         if (node instanceof Integer) {
                             taintNum = (Integer) node;
-                            if (Constant.debug) {
+                            if (DebugOption.userDebug) {
                                 logger.info("Runtime.exec可被arg" + taintNum + "污染");
                             }
                             taints.add(taintNum);

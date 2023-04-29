@@ -16,8 +16,6 @@ public class Constant {
     public static Map<String, String> classNameToClassFileName = new HashMap<>();
     // 编译错误的文件名列表
     public static Map<Integer, String> compileErrorFileNameList = new HashMap<>();
-    // 恶意文件名列表
-    public static Map<Integer, String> evilFileNameList = new HashMap<>();
     // 传递污点流
     public static Map<MethodReference.Handle, Set<Integer>> passthroughDataflow = new HashMap<>();
     // 整理方法调用
@@ -28,7 +26,5 @@ public class Constant {
     public static Map classNameToJspName = new HashMap();
     // 消息列表
     public static List<String> msgList = new ArrayList<>();
-    // debug选项
-    public static boolean debug = false;
 }
 

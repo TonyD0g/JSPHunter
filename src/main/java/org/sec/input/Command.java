@@ -20,4 +20,7 @@ public  class Command {
 
     @Parameter(names = {"-f", "--file"}, description = "指定web目录下的某个文件")
     public String file;
+
+    @Parameter(names = {"-debug", "--debug"}, description = "开启debug选项(用户层)")
+    public boolean debug;
 }

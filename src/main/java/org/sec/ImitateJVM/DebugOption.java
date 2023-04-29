@@ -6,8 +6,9 @@ import java.util.Arrays;
  * debug选项，开启后能方便调试
  */
 public class DebugOption {
-    // 是否开启debug选项
-    public static boolean debug = false;
+    // 是否开启debug选项: userDebug为方便用户查看,systemDebug为方便开发人员查看
+    public static boolean systemDebug = false;
+    public static boolean userDebug = false;
 
     // 记录压栈了几次
     public static int pushNum = 0;
@@ -31,7 +32,7 @@ public class DebugOption {
      * 记录debug选项
      */
     public static void setDebug(int opcode) {
-        if(debug == false){
+        if(systemDebug == false){
             return;
         }
         whoOpcodes[pushNum] = opcode;

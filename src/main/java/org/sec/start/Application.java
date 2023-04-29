@@ -3,6 +3,7 @@ package org.sec.start;
 import com.beust.jcommander.JCommander;
 import org.apache.log4j.Logger;
 import org.sec.Constant.Constant;
+import org.sec.ImitateJVM.DebugOption;
 import org.sec.JSP.JspAnalysis;
 import org.sec.Scan.FindEvilDiscovery;
 import org.sec.input.Command;
@@ -49,8 +50,8 @@ class CommandChoiceTest extends CommandChoice {
         if (!CommandChoice.CommandChoice(command, jc)) {
             return false;
         }
-        boolean delete = command.delete;
-        if (delete) {
+        DebugOption.userDebug = command.debug;
+        if (command.delete) {
             Analysis(command, true);
         } else {
             Analysis(command, false);

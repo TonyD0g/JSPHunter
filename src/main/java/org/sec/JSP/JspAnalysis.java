@@ -27,7 +27,6 @@ public class JspAnalysis {
                 jspc.setCompilerSourceVM("1.8");
                 jspc.setOutputDir("JspCompile");
                 jspc.setClassPath(classPath);
-                System.out.println("!!!!" + jspc.getJavaEncoding());
                 if (file != null) {
                     jspc.setJspFiles(file);
                 } else {

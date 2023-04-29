@@ -37,14 +37,13 @@
 
 - JSPHunter: 29/29 , 100%
 
-
 **2.[JSPHorse-1.3.1](https://github.com/CrackerCat/JSPHorse)与JSPHunter(0.0.9)的对抗**
 
 ​	已能全部检测出来
 
 **3.[浅谈JspWebshell之编码](https://tttang.com/archive/1840/)**
 
-
+​	文章中给出的一二三重编码能全部检测出,但不排除绕过的可能性
 
 **目前正在优化检测逻辑,使检测率提高**
 
@@ -66,6 +65,7 @@ java -cp JSPHunter.jar org.sec.Main
 -d "要扫描的tomcat路径"
 -cp "tomcat依赖"
 -del // 加此参数会自动删除恶意shell,不会删除可疑文件
+-debug // 开启用户debug选项,会输出污点流方向
 
 如：
 java -cp JSPHunter.jar org.sec.Main -d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -del 

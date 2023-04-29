@@ -248,7 +248,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitCode() {
-        debugOption.debug = false;
+        // 开发时需要调试的时候开启: debugOption.systemDebug = true;
         debugOption.clearSet();
 
         super.visitCode();
