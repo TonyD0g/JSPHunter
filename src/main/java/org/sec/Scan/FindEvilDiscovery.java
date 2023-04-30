@@ -302,7 +302,7 @@ public class FindEvilDiscovery {
                         }
                         //如果不包含arrayList的byte数组，那么就正常传递污点
                         super.visitMethodInsn(opcode, owner, name, desc, itf);
-                        if (!CoreMethodAdapter.isTest) {
+                        if (!CoreMethodAdapter.isSizeEqual) {
                             operandStack.get(0).addAll(taintList);
                         }
                         return;

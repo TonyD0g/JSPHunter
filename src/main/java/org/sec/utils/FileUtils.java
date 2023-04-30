@@ -17,6 +17,18 @@ public class FileUtils {
     private static final Logger logger = Logger.getLogger(FileUtils.class);
     private static final boolean DEBUG = true;
 
+    /** 创建文件 */
+    public static boolean creatFile(String filePath){
+        File file = new File(filePath);
+        try {
+            file.createNewFile();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /**
      * 获取文件路径
      */
@@ -33,7 +45,7 @@ public class FileUtils {
         return String.format("%s%s.class", path, className.replace('.', File.separatorChar));
     }
 
-    /** 根据想要的后缀名读取文件到列表中 */
+    /** 根据想要的后缀名读取文件到列表中  (读取)*/
     public static void getWantSuffixFilePath(String path, String wantSuffix,ArrayList<String> filePathArray) {
         ArrayList<String> filePathList = new ArrayList<>();
         readDir(path, filePathList);
@@ -47,7 +59,7 @@ public class FileUtils {
     }
 
     /**
-     * 根据输入的filePath读取Bytes
+     * 根据输入的filePath读取Bytes (读取)
      */
     public static byte[] readBytes(String filePath) {
         File file = new File(filePath);
@@ -75,7 +87,7 @@ public class FileUtils {
     }
 
     /**
-     * 读文件
+     * 读文件 (读取)
      */
     public static FileReader readForName(String name) throws Exception {
         FileReader fileName = null;
@@ -88,14 +100,14 @@ public class FileUtils {
     }
 
     /**
-     * 读文件
+     * 读文件 (读取)
      */
     public static List<String> readLines(String filepath) {
         return readLines(filepath, "UTF8");
     }
 
     /**
-     * 将所有文件读入List中
+     * 从文件中按行全部读入List<String>中 (读取)
      */
     public static List<String> readLines(String filepath, String charsetName) {
         File file = new File(filepath);
@@ -133,7 +145,7 @@ public class FileUtils {
 
 
     /**
-     * 随机读取某一行
+     * 随机读取某一行 (读取)
      */
     public static String randomReadLine(int maxLine, FileReader fileName) throws Exception {
         int wantLine = (int) (Math.random() * maxLine + 1), line = 1;
@@ -150,7 +162,7 @@ public class FileUtils {
     }
 
     /**
-     * 读文件流
+     * 读文件流 (读取)
      */
     public static byte[] readStream(final InputStream in, final boolean close) {
         if (in == null) {
@@ -176,7 +188,7 @@ public class FileUtils {
     }
 
     /**
-     * 写入Bytes
+     * 写入Bytes (写入)
      */
     public static void writeBytes(String filepath, byte[] bytes) {
         File file = new File(filepath);
@@ -195,7 +207,7 @@ public class FileUtils {
     }
 
     /**
-     * 将多行写到文件
+     * 将多行写到文件 (写入)
      */
     public static void writeLines(String filepath, List<String> lines) {
         if (lines == null || lines.size() < 1) return;
@@ -272,12 +284,12 @@ public class FileUtils {
 
         if (!file_exists) {
             boolean flag = dirFile.mkdirs();
-            assert !DEBUG || flag : "[+] [org.sec.utils.FileUtils] Create Directory Failed: " + dirFile.getAbsolutePath();
+            assert !DEBUG || flag : "[-] [org.sec.utils.FileUtils] Create Directory Failed: " + dirFile.getAbsolutePath();
         }
     }
 
     /**
-     * 读取dir下的所有文件,返回绝对路径列表
+     * 读取dir下的所有文件,返回绝对路径列表 (读取)
      */
     public static ArrayList<String> readDir(String pathName, ArrayList<String> fileNameList) {
         File folder = new File(pathName);
@@ -299,7 +311,7 @@ public class FileUtils {
     }
 
     /**
-     * 读取 WebDir
+     * 读取 WebDir (读取)
      */
     public static Set<String> readWebDir(String webDir, Set<String> webDirSet) {
         ArrayList<String> allFileName = new ArrayList<>();
@@ -357,21 +369,6 @@ public class FileUtils {
 
             boolean flag = file.delete();
             assert !DEBUG || flag : "[Warning] [org.sec.utils.FileUtils] delete file failed: " + file.getAbsolutePath();
-        }
-    }
-
-    /** 根据传入的fileName (String)去删除 */
-    public static void deleteFile(String dirPath) {
-        File file = new File(dirPath);
-        if (file.isDirectory()) {
-            String[] dirPathList = file.list();
-            for (int i = 0; i < dirPathList.length; i++) {
-                String filePath = dirPath + File.separator + dirPathList[i];
-                File fileDelete = new File(filePath);
-                if (fileDelete.getName().equals("test1111.txt")) {
-                    fileDelete.delete();
-                }
-            }
         }
     }
 

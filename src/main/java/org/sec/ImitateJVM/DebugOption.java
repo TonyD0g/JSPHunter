@@ -14,7 +14,7 @@ public class DebugOption {
     public static int pushNum = 0;
 
     // 记录哪个字节码造成了压栈，
-    public static int[] whoOpcodes = new int[20]; // 先假定最多20个
+    public static int[] whoOpcodes = new int[20]; // todo 解决debug的数组大小随着sortedMethods增大而增大
 
     public static String owner = new String();
     public static String name = new String();

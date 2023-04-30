@@ -8,7 +8,6 @@ public class RegexUtils {
     public static String getXXXContent(String type,String str){
         String regEx = null;
         switch (type){
-            // todo 获取 普通括号()右边的内容 ()123
             case "rightBrackets":
                 regEx = "(?<=\\))(.+)";
                 break;

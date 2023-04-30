@@ -20,9 +20,10 @@
 
 - 增强检测能力: 检测能力比JSPFinder更强,检测正常jsp文件格式不会报错,能把"webshell bypass"的绕过全部检测出来
 
+- 将污点源黑名单导出到一个文件中,使用fileUtils去读取,方便于扩展
+
 # TODO
 
-- // todo 将污点源黑名单导出到一个文件中,使用fileUtils去读取,方便于扩展
 - //todo 解决继承,实现接口能导致绕过的问题
 
 # webshell bypass
@@ -60,8 +61,7 @@
 # 使用方法
 
 ```md
-java -cp JSPHunter.jar org.sec.Main
-
+基础用法:
 -d "要扫描的tomcat路径"
 -cp "tomcat依赖"
 -del // 加此参数会自动删除恶意shell,不会删除可疑文件
@@ -69,6 +69,14 @@ java -cp JSPHunter.jar org.sec.Main
 
 如：
 java -cp JSPHunter.jar org.sec.Main -d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -del 
+
+高级用法:
+stainSource.txt为污点源文件,如果你发现新的污点源,可以手动添加到stainSource.txt,进而增强检测能力.
+
+文件内容格式:
+类 方法 方法参数和返回值 方法参数中能影响返回值的索引(0代表this,从1开始为方法参数)
+如:
+javax/servlet/http/HttpServletRequest	getParameter	(Ljava/lang/String;)Ljava/lang/String;	0,
 ```
 
 
