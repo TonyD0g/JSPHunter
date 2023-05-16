@@ -1,7 +1,6 @@
 package org.sec.ImitateJVM;
 
 import org.apache.log4j.Logger;
-import org.apache.tools.ant.util.StringUtils;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.sec.utils.FileUtils;
@@ -52,11 +51,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         }
 
         // 如果没有stainSource.txt则创建,并写入内置污点源
-        File stainSource = new File(".\\stainSource.txt");
+        File stainSource = new File("." + File.separator + "stainSource.txt");
         if (!stainSource.exists()) {
             try {
                 stainSource.createNewFile();
-                FileUtils.writeLines(".\\stainSource.txt", lines);
+                FileUtils.writeLines("." + File.separator + "stainSource.txt", lines);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
