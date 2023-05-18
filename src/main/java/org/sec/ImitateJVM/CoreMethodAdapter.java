@@ -859,8 +859,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-
-        debugOption.setFilter("java/util/Base64$Decoder", "decode", "(Ljava/lang/String;)[B");
+        debugOption.setFilter("java/lang/String", "<init>", "([B)V");
         debugOption.filter(owner, name, desc);
 
         // 获取method的参数类型
@@ -934,6 +933,11 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
 
         //处理当return new String(evilCode)这种情况，构造方法返回值为retSize为0，但其实他可以污染 上层函数(所有方法参数出栈后的栈顶)
         if (retSize == 0 && operandStack.size() > 0 && resultTaint != null && resultTaint.size() > 0) {
+            operandStack.get(0).addAll(resultTaint);
+        } else if (owner.equals("java/lang/String") && name.equals("<init>") && desc.equals("([B)V") && retSize == 0 && operandStack.size() > 0 && resultTaint != null) {
+            // 解决 new String直接扔入函数中，会导致无法检测的问题.解决方案:自己造一个污点,用于传递
+            // todo 解决过于粗暴的问题.解决方案:创建使用一个字节码记录器,用于记录所有字节码,如果 java/lang/String."<init>":([B)V 的下一句是 astore 指令,则不执行下列代码
+            resultTaint = operandStack.get(operandStack.size() - 1);
             operandStack.get(0).addAll(resultTaint);
         }
         sanityCheck();

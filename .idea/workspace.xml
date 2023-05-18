@@ -211,10 +211,30 @@
       <workItem from="1684204265733" duration="246000" />
       <workItem from="1684204520791" duration="10000" />
       <workItem from="1684213618541" duration="564000" />
+      <workItem from="1684412513842" duration="4759000" />
     </task>
     <servers />
   </component>
   <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/JVMMethodScan/InvokeInterface.java</url>
+          <line>23</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/CoreMethodAdapter.java</url>
+          <line>935</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/CoreMethodAdapter.java</url>
+          <line>939</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
     <pin-to-top-manager>
       <pinned-members>
         <PinnedItemInfo parentTag="org.objectweb.asm.commons.AnalyzerAdapter" memberName="stack" />
@@ -232,6 +252,7 @@
         <watch expression="desc" />
         <watch expression="((AnalyzerAdapter)((FindEvilDataflowMethodVisitor)this).mv).locals" custom="org.objectweb.asm.commons.AnalyzerAdapter,org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" />
         <watch expression="operandStack.stack" />
+        <watch expression="operandStack" language="JAVA" />
       </configuration>
     </watches-manager>
   </component>

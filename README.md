@@ -1,4 +1,4 @@
-# JSPHunter [Java 8]
+# JSPHunter [Java 8] 蓝队工具
 
 **基于污点分析和模拟栈帧技术的JSP Webshell检测**     `仅做学习记录`
 
@@ -25,6 +25,9 @@
 # TODO
 
 - //todo 解决继承,实现接口能导致绕过的问题
+- 增加检测能力:   检测bypass文件夹下的jsp webshell
+- 设置导出结果名单 -o 参数
+- 将Evil方法导出为文件,便于修改和扩展
 
 # webshell bypass
 
@@ -46,7 +49,7 @@
 
 ​	文章中给出的一二三重编码能全部检测出,但不排除绕过的可能性
 
-**4.**https://github.com/G0mini/Bypass	全部检测出 
+**4.** https://github.com/G0mini/Bypass	全部检测出 
 
 **已知绕过:**
 
