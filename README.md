@@ -6,7 +6,11 @@
 
 尝试对其进行优化检测逻辑和重构,以作为自己学习污点分析和模拟栈帧技术的检验和毕业设计.
 
-目前正在不断更新优化，欢迎师傅们提交bypass，我会进行优化改进
+目前正在不断更新优化，**欢迎师傅们提交bypass**，我会进行优化改进
+
+**测试环境：8.5.81**
+
+**注意：对内存马没用！**
 
 # 个人优化
 
@@ -49,11 +53,10 @@
 
 ​	文章中给出的一二三重编码能全部检测出,但不排除绕过的可能性
 
-**4.** https://github.com/G0mini/Bypass	全部检测出 
+**4.** https://github.com/G0mini/Bypass	，https://github.com/yzddmr6/JSPBackdoor	全部检测出 
 
 **已知绕过:**
 
-- https://github.com/yzddmr6/JSPBackdoor
 - bypass文件夹下的jsp webshell
 
 **目前正在优化检测逻辑,使检测率提高**

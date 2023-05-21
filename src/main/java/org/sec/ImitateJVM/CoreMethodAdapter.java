@@ -936,7 +936,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             operandStack.get(0).addAll(resultTaint);
         } else if (owner.equals("java/lang/String") && name.equals("<init>") && desc.equals("([B)V") && retSize == 0 && operandStack.size() > 0 && resultTaint != null) {
             // 解决 new String直接扔入函数中，会导致无法检测的问题.解决方案:自己造一个污点,用于传递
-            // todo 解决过于粗暴的问题.解决方案:创建使用一个字节码记录器,用于记录所有字节码,如果 java/lang/String."<init>":([B)V 的下一句是 astore 指令,则不执行下列代码
             resultTaint = operandStack.get(operandStack.size() - 1);
             operandStack.get(0).addAll(resultTaint);
         }

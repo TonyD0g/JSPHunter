@@ -12,7 +12,6 @@ import java.util.Set;
 
 //调用接口方法
 public class InvokeInterface {
-    private static final Logger logger = Logger.getLogger(InvokeInterface.class);
 
     public static String analysis(String owner, String name, String desc, List<Set<Integer>> argTaint, Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, boolean isDelete) {
 

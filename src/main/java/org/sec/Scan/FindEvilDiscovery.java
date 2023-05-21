@@ -242,9 +242,9 @@ public class FindEvilDiscovery {
                                     printEvilMessage.add(1);
                                     String msg;
                                     if (evilType.equals("Behinder")) {
-                                        msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "------该文件所调用的ClassLoader.defineClass可被request污染，疑似冰蝎/哥斯拉/天蝎webshell";
+                                        msg = "[+] " + "(检测结果: 恶意) " + Constant.classNameToJspName.get(classFileName) + "------该文件所调用的ClassLoader.defineClass可被request污染，疑似冰蝎/哥斯拉/天蝎webshell";
                                     } else {
-                                        msg = "[+] " + Constant.classNameToJspName.get(classFileName) + "   " + evilType + "可被request污染，该文件为webshell!!!";
+                                        msg = "[+] " + "(检测结果: 恶意) " + Constant.classNameToJspName.get(classFileName) + "   " + evilType + "可被request污染，该文件为webshell!!!";
                                     }
                                     logger.info(msg);
                                     Constant.evilClass.add(classFileName);
