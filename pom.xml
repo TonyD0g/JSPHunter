@@ -49,14 +49,6 @@
             <version>1.81</version>
         </dependency>
 
-        <!-- http -->
-        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
-        </dependency>
-
         <!-- jasper -->
         <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-jasper -->
         <dependency>
@@ -109,14 +101,10 @@
             <artifactId>asm-analysis</artifactId>
             <version>5.1</version>
         </dependency>
-
-
-
-        <!-- fileUtils -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
+            <version>31.0.1-jre</version>
         </dependency>
 
     </dependencies>

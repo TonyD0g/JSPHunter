@@ -5,13 +5,12 @@ D:\Coding\JSPHunter\src\main\java\org\sec\Main.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Data\DataFactory.java
 D:\Coding\JSPHunter\src\main\java\org\sec\utils\stringUtils.java
 D:\Coding\JSPHunter\src\main\java\org\sec\ImitateJVM\CoreMethodAdapter.java
+D:\Coding\JSPHunter\src\main\java\org\sec\Scan\stainSource.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Scan\JVMMethodScan\InvokeVirtual.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Scan\FindEvilDiscovery.java
 D:\Coding\JSPHunter\src\main\java\org\sec\utils\ArrayUtils\ArrayList.java
-D:\Coding\JSPHunter\src\main\java\org\sec\utils\test\fileTest.java
 D:\Coding\JSPHunter\src\main\java\org\sec\start\Application.java
 D:\Coding\JSPHunter\src\main\java\org\sec\Constant\Constant.java
-D:\Coding\JSPHunter\src\main\java\org\sec\utils\test\regexTest.java
 D:\Coding\JSPHunter\src\main\java\org\sec\ImitateJVM\LocalVariables.java
 D:\Coding\JSPHunter\src\main\java\org\sec\utils\IOUtils.java
 D:\Coding\JSPHunter\src\main\java\org\sec\ImitateJVM\ChangeAsmVar.java

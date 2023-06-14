@@ -26,6 +26,9 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="jar://$MAVEN_REPOSITORY$/org/apache/tomcat/tomcat-jasper/8.5.81/tomcat-jasper-8.5.81-sources.jar!/org/apache/jasper/JspC.java" root0="SKIP_INSPECTION" />
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
       <MavenGeneralSettings>
@@ -41,21 +44,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;TODO_SCOPE&quot;: &quot;所有位置&quot;,
-    &quot;extract.method.default.visibility&quot;: &quot;public&quot;,
-    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;1.8&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Coding/C/UtilityRoom/CommunicationsSystem&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;库&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.projectsettings.compiler.javacompiler&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "TODO_SCOPE": "所有位置",
+    "extract.method.default.visibility": "public",
+    "jdk.selected.JAVA_MODULE": "1.8",
+    "last_opened_file_path": "D:/Coding/JSPHunter/src/main/java/org/sec/utils/test",
+    "project.structure.last.edited": "项目",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.31494254",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
-  <component name="RunManager" selected="应用程序.Main">
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Coding\JSPHunter\src\main\java\org\sec\utils\test" />
+    </key>
+  </component>
+  <component name="RunManager" selected="应用程序.processScheduling">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
       <module name="SafeTools-Boot" />
@@ -73,8 +81,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="应用程序.Main" />
         <item itemvalue="应用程序.processScheduling" />
+        <item itemvalue="应用程序.Main" />
       </list>
     </recent_temporary>
   </component>
@@ -223,6 +231,19 @@
       <workItem from="1684633319717" duration="2923000" />
       <workItem from="1684644298776" duration="2874000" />
       <workItem from="1684647424400" duration="4320000" />
+      <workItem from="1684651782160" duration="25000" />
+      <workItem from="1684652007267" duration="812000" />
+      <workItem from="1684652827889" duration="998000" />
+      <workItem from="1684807142071" duration="15000" />
+      <workItem from="1685092537085" duration="75000" />
+      <workItem from="1685096465047" duration="1558000" />
+      <workItem from="1685244789560" duration="542000" />
+      <workItem from="1685453078878" duration="658000" />
+      <workItem from="1685453744389" duration="1742000" />
+      <workItem from="1685455497607" duration="349000" />
+      <workItem from="1685455862582" duration="87000" />
+      <workItem from="1685458352819" duration="72000" />
+      <workItem from="1686143787764" duration="310000" />
     </task>
     <servers />
   </component>
