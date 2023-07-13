@@ -55,6 +55,16 @@
 
 **4.** https://github.com/G0mini/Bypass	，https://github.com/yzddmr6/JSPBackdoor	全部检测出 
 
+**5.https://tttang.com/archive/1739/**
+
+​	除了"TemplatesImpl 加载字节码"，"XSLT免杀","反序列化免杀","JNDI免杀"之外，全部能检测。
+
+​	其中"TemplatesImpl 加载字节码"，"XSLT免杀"自行将所调用的类及其方法添加到stainSource.txt，就能达到查杀效果
+
+​	"反序列化免杀"懒得搞环境,你可以自行测试.
+
+​	"JNDI免杀"是比较好利用的，而且因为业务经常用，所以容易误报，看个人是否愿意加入检测规则.
+
 **已知绕过:**
 
 - bypass文件夹下的jsp webshell
