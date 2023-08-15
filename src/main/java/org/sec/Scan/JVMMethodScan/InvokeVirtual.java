@@ -5,6 +5,7 @@ import org.objectweb.asm.Type;
 import org.sec.Constant.Constant;
 import org.sec.ImitateJVM.DebugOption;
 import org.sec.Scan.FindEvilDiscovery;
+import org.sec.Scan.getAllString;
 import org.sec.utils.FileUtils;
 
 import java.io.File;
@@ -16,6 +17,7 @@ import java.util.*;
  */
 public class InvokeVirtual {
     private static final Logger logger = Logger.getLogger(InvokeVirtual.class);
+    public static boolean getInfoFlag = false;
 
     public String analysis(int opcode, String owner, String name, String desc, boolean itf, FindEvilDiscovery.FindEvilDataflowMethodVisitor findEvilDataflowMethodVisitor, List<Set<Integer>> argTaint, Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, boolean isDelete) {
 
@@ -174,7 +176,7 @@ public class InvokeVirtual {
                         if (node instanceof Integer) {
                             taintNum = (Integer) node;
                             if (DebugOption.userDebug) {
-                                logger.info("Runtime.exec可被arg" + taintNum + "污染");
+                                logger.info("恶意函数可被 arg" + taintNum + "污染");
                             }
                             taints.add(taintNum);
                         }
@@ -288,6 +290,11 @@ public class InvokeVirtual {
             } else {
                 msg = "[+] " + "(检测结果: 可疑) " + Constant.classNameToJspName.get(classFileName) + "   使用了" + evilType + "，建议查看此文件进一步判断!";
             }
+            logger.info(msg);
+            if(InvokeVirtual.getInfoFlag){
+                getAllString.getStringsList();
+            }
+
             if (isDelete && anomalyDegree == 1) {
                 String wantDelete = (String) Constant.classNameToJspName.get(classFileName);
                 String realFileName = wantDelete.substring(wantDelete.lastIndexOf(File.separator) + 1);
@@ -295,7 +302,6 @@ public class InvokeVirtual {
                 File deleteFile = new File(path + realFileName);
                 FileUtils.delete(deleteFile);
             }
-            logger.info(msg);
             Constant.evilClass.add(classFileName);
             Constant.msgList.add(msg);
         }

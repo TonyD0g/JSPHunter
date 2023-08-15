@@ -87,8 +87,9 @@
 基础用法:
 -d "要扫描的tomcat路径"
 -cp "tomcat依赖"
--del // 加此参数会自动删除恶意shell,不会删除可疑文件
+-del // 加此参数会自动删除恶意shell,不会删除可疑文件,可疑文件需要人工分析
 -debug // 开启用户debug选项,会输出污点流方向
+-info // 获取shell的各种信息,可以用于尝试获取shell的连接密码.建议单个分析shell
 
 如：
 java -cp JSPHunter.jar org.sec.Main -d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -del 
@@ -100,6 +101,17 @@ stainSource.txt为污点源文件,如果你发现新的污点源,可以手动添
 类 方法 方法参数和返回值 方法参数中能影响返回值的索引(0代表this,从1开始为方法参数)
 如:
 javax/servlet/http/HttpServletRequest	getParameter	(Ljava/lang/String;)Ljava/lang/String;	0,
+```
+
+
+
+# 源码编译可能遇到的问题
+
+```md
+1.编译后的jar包过大的问题:
+	使用7-zip打开jar,进入com文件夹,然后将sum文件夹全部删除
+	
+	
 ```
 
 

@@ -6,6 +6,7 @@ import org.sec.Constant.Constant;
 import org.sec.ImitateJVM.DebugOption;
 import org.sec.JSP.JspAnalysis;
 import org.sec.Scan.FindEvilDiscovery;
+import org.sec.Scan.JVMMethodScan.InvokeVirtual;
 import org.sec.input.Command;
 import org.sec.input.CommandChoice;
 import org.sec.utils.FileUtils;
@@ -51,6 +52,7 @@ class CommandChoiceTest extends CommandChoice {
             return false;
         }
         DebugOption.userDebug = command.debug;
+        InvokeVirtual.getInfoFlag = command.info;
         if (command.delete) {
             Analysis(command, true);
         } else {

@@ -1,5 +1,6 @@
 package org.sec.ImitateJVM;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -14,7 +15,7 @@ public class DebugOption {
     public static int pushNum = 0;
 
     // 记录哪个字节码造成了压栈，
-    public static int[] whoOpcodes = new int[20]; // todo 解决debug的数组大小随着sortedMethods增大而增大
+    public static ArrayList<Integer> whoOpcodes = new ArrayList<>();
 
     public static String owner = new String();
     public static String name = new String();
@@ -25,7 +26,7 @@ public class DebugOption {
      */
     public static void clearSet() {
         pushNum = 0;
-        Arrays.fill(whoOpcodes, 0);
+        whoOpcodes.clear();
     }
 
     /**
@@ -35,7 +36,7 @@ public class DebugOption {
         if(systemDebug == false){
             return;
         }
-        whoOpcodes[pushNum] = opcode;
+        whoOpcodes.set(pushNum, opcode);
         pushNum++;
     }
 
@@ -57,16 +58,16 @@ public class DebugOption {
      */
     public static void printDebug() {
         // 如果根本就没压栈,则直接退出不打印
-        if(whoOpcodes[0] == 0){
+        if(whoOpcodes.get(0) == 0){
             return;
         }
         System.out.println("----------------------------------------------------------------");
         System.out.println(String.format("[ %s , %s , %s ]",owner,name,desc));
-        for (int i = 0; i < whoOpcodes.length - 1; i++) {
-            if(whoOpcodes[i] == 0){
+        for (int i = 0; i < whoOpcodes.size() - 1; i++) {
+            if(whoOpcodes.get(i) == 0){
                 break;
             }
-            System.out.println("opcode composition: " + whoOpcodes[i]);
+            System.out.println("opcode composition: " + whoOpcodes.get(i));
         }
         System.out.println("----------------------------------------------------------------");
     }

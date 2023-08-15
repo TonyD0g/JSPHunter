@@ -3,6 +3,7 @@ package org.sec.ImitateJVM;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
+import org.sec.Scan.getAllString;
 import org.sec.utils.FileUtils;
 import org.sec.utils.stringUtils;
 
@@ -859,7 +860,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-        debugOption.setFilter("java/lang/String", "<init>", "([B)V");
+        debugOption.setFilter("java/io/ByteArrayInputStream", "<init>", "([BII)V");
         debugOption.filter(owner, name, desc);
 
         // 获取method的参数类型
@@ -898,6 +899,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                         for (int i = 0; i < middle.length; i++) {
                             resultTaint.addAll(argTaint.get((Integer) Integer.parseInt(middle[i])));
                         }
+                        //System.out.println(finalPassthrough[0]+"  "+ finalPassthrough[1] );
+
                         break;
                     }
                 }
@@ -1047,6 +1050,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             operandStack.push();
         } else {
             operandStack.push();
+            // 可能是String类型,遍历输出String类型,密码可能就存在里面
+            String tmpStr = cst.toString();
+            getAllString.stringsList.add(tmpStr);
         }
         super.visitLdcInsn(cst);
         sanityCheck();
