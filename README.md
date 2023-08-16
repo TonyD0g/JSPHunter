@@ -47,7 +47,7 @@ javax/servlet/http/HttpServletRequest	getParameter	(Ljava/lang/String;)Ljava/lan
 
 # TODO
 
-- //todo 解决继承,实现接口能导致绕过的问题
+- 解决继承,实现接口能导致绕过的问题
 - 增加检测能力:   检测bypass文件夹下的jsp webshell
 - 设置导出结果名单 -o 参数
 - 将Evil方法导出为文件,便于修改和扩展
@@ -76,9 +76,7 @@ javax/servlet/http/HttpServletRequest	getParameter	(Ljava/lang/String;)Ljava/lan
 
 **5.https://tttang.com/archive/1739/**
 
-​	除了"TemplatesImpl 加载字节码"，"XSLT免杀","反序列化免杀","JNDI免杀"之外，全部能检测。
-
-​	其中"TemplatesImpl 加载字节码"，"XSLT免杀"自行将所调用的类及其方法添加到stainSource.txt，就能达到查杀效果
+​	除了"反序列化免杀","JNDI免杀"之外，全部能检测。
 
 ​	"反序列化免杀"懒得搞环境,你可以自行测试.
 
@@ -106,7 +104,8 @@ javax/servlet/http/HttpServletRequest	getParameter	(Ljava/lang/String;)Ljava/lan
 1.编译后的jar包过大的问题:
 	使用7-zip打开jar,进入com文件夹,然后将sum文件夹全部删除
 	
-	
+2.反编译class文件:
+	javap -c 	
 ```
 
 

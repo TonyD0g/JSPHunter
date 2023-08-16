@@ -8,6 +8,7 @@ import org.sec.Data.MethodReference;
 import org.sec.ImitateJVM.ChangeAsmVar;
 import org.sec.ImitateJVM.CoreMethodAdapter;
 import org.sec.ImitateJVM.DebugOption;
+import org.sec.ImitateJVM.currentClassQueue;
 import org.sec.Scan.JVMMethodScan.InvokeInterface;
 import org.sec.Scan.JVMMethodScan.InvokeVirtual;
 
@@ -19,12 +20,14 @@ import java.util.*;
  */
 public class FindEvilDiscovery {
     private static final Logger logger = Logger.getLogger(FindEvilDiscovery.class);
+    public static ArrayList<String> innerClassList = new ArrayList<>();
 
     public void discover(boolean delete) {
         findEvilDataflow(delete);
     }
 
     private void findEvilDataflow(boolean delete) {
+        currentClassQueue.initClassQueue("", "_jspService"); // test
         final Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow = new HashMap<>();
         for (MethodReference.Handle methodToVisit : Constant.sortedMethodCalls) {
             String className = methodToVisit.getOwner().substring(methodToVisit.getOwner().lastIndexOf("/") + 1);
@@ -73,6 +76,23 @@ public class FindEvilDiscovery {
                 return new JSRInlinerAdapter(findEvilDataflowMethodVisitor, access, name, descriptor, signature, exceptions);
             }
             return super.visitMethod(access, name, descriptor, signature, exceptions);
+        }
+
+        /**
+         * 检测内部类,然后进行相应的操作
+         **/
+        // TODO 解决内部类的问题
+        // 我的思路: 设置一个暂存类1和暂存类2,用于表示当前所处的类环境.如果执行的过程遇到了内部类，就更新暂存类1和2，将暂存类2顺延到暂存类1,内部类放置到暂存类2
+        @Override
+        public void visitInnerClass(String name, String outerName, String innerName, int access) {
+            //System.out.println("name is: "+name+" outName is: " + outerName + " Detected inner class:" + innerName);
+            // TODO 解决 原生类会执行 updateClassQueue
+            if(!innerClassList.contains(name) && name.contains("org/apache/jsp/")){
+                currentClassQueue.updateClassQueue(name);
+                innerClassList.add(name);
+            }
+
+            super.visitInnerClass(name, outerName, innerName, access);
         }
 
         public Map<String, Set<Integer>> getReturnTaint() {
@@ -336,7 +356,7 @@ public class FindEvilDiscovery {
                                     logger.info("ProcessBuilder可被arg" + taintNum + "污染");
                                 }
                                 taints.add(taintNum);
-                                if (this.name.equals("_jspService")) {
+                                if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
                                     InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "ProcessBuilder,且外部可控", 1, this.isDelete);
                                 }
                             }
@@ -371,8 +391,8 @@ public class FindEvilDiscovery {
                                     }
                                     taints.add(taintNum);
                                 }
-                                if (this.name.equals("_jspService")) {
-                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "defineClass或URLClassLoaderInit,且受外部控制", 1, this.isDelete);
+                                if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
+                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "defineClass或URLClassLoaderInit或ObjectInputStreamResolveClass,且受外部控制", 1, this.isDelete);
                                 }
                             }
                         }
@@ -387,6 +407,7 @@ public class FindEvilDiscovery {
                 boolean isValueOf = name.equals("valueOf") && desc.equals("(Ljava/lang/Object;)Ljava/lang/String;") && owner.equals("java/lang/String");
                 boolean isMethodUtilInvoke = owner.equals("sun/reflect/misc/MethodUtil") && name.equals("invoke") && desc.equals("(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
                 boolean JspRuntimeLibrary = owner.equals("org/apache/jasper/runtime/JspRuntimeLibrary") && name.equals("introspect") && desc.equals("(Ljava/lang/Object;Ljavax/servlet/ServletRequest;)V");
+                // boolean TransformerFactory = owner.equals("javax/xml/transform/TransformerFactory") && name.equals("newInstance") && desc.equals("()Ljavax/xml/transform/TransformerFactory;");
 
                 if ((isMethodUtilInvoke || JspRuntimeLibrary) && operandStack.get(0).size() > 0) {
                     Set<Integer> taints = new HashSet<>();
@@ -394,14 +415,19 @@ public class FindEvilDiscovery {
                         if (node instanceof Integer) {
                             int taintNum = (Integer) node;
                             if (DebugOption.userDebug) {
-                                logger.info("MethodUtilInvoke 可被arg" + taintNum + "污染");
+                                logger.info("恶意类 可被arg" + taintNum + "污染");
                             }
                             taints.add(taintNum);
-                            if (this.name.equals("_jspService")) {
+                            if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
                                 if (isMethodUtilInvoke) {
                                     InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "MethodUtil.invoke", 1, this.isDelete);
+                                    break;
                                 } else if (JspRuntimeLibrary) {
                                     InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, this.isDelete);
+                                    break;
+                                } else {
+                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "TransformerFactory 的 newInstance", 1, this.isDelete);
+                                    break;
                                 }
                             }
                         }

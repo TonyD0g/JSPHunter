@@ -36,7 +36,12 @@ public class OperandStack<T> {
     }
 
     public Set<T> get(int index) {
-        return stack.get(stack.size() - index - 1);
+        try {
+            return stack.get(stack.size() - index - 1);
+        } catch (Exception e) {
+            System.out.println("[-] Error! The array is out of bounds, possibly due to an unknown shell causing a bug in the JSPHunter. This shell requires manual analysis!");
+        }
+        return null;
     }
 
     public void set(int index, Set<T> t) {

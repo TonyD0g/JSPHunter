@@ -15,6 +15,6 @@ public class Main {
         logger.info("start JSPHunter application");
         // 运行主逻辑
         Application.start(args);
-        System.out.println("(Version:   0.1.5)");
+        System.out.println("JSPHunter (Version:   0.1.6)  Modify from TonyD0g");
     }
 }

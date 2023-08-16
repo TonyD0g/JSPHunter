@@ -3,7 +3,11 @@ package org.sec.input;
 public abstract class Logo {
     /** [+] 输出logo */
     public static void PrintLogo(){
-        // [+] System.out.println("[+] 输出logo");
-        System.out.println("[+] A quick build tools By TonyD0g");
+        System.out.println("       _  _____ _____  _    _             _            \n" +
+                "      | |/ ____|  __ \\| |  | |           | |           \n" +
+                "      | | (___ | |__) | |__| |_   _ _ __ | |_ ___ _ __ \n" +
+                "  _   | |\\___ \\|  ___/|  __  | | | | '_ \\| __/ _ \\ '__|\n" +
+                " | |__| |____) | |    | |  | | |_| | | | | ||  __/ |   \n" +
+                "  \\____/|_____/|_|    |_|  |_|\\__,_|_| |_|\\__\\___|_|");
     }
 }

@@ -44,20 +44,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "TODO_SCOPE": "所有位置",
-    "extract.method.default.visibility": "public",
-    "jdk.selected.JAVA_MODULE": "1.8",
-    "last_opened_file_path": "D:/Coding/Github/JSPHunter",
-    "project.structure.last.edited": "工件",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.31494254",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;TODO_SCOPE&quot;: &quot;所有位置&quot;,
+    &quot;extract.method.default.visibility&quot;: &quot;public&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;1.8&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Coding/Github/JSPHunter&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;工件&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.31494254&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Coding\JSPHunter\src\main\java\org\sec\utils\test" />
@@ -67,7 +67,7 @@
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
       <module name="SafeTools-Boot" />
-      <option name="PROGRAM_PARAMETERS" value="-d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -info" />
+      <option name="PROGRAM_PARAMETERS" value="-d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -250,6 +250,9 @@
       <workItem from="1692019608607" duration="30000" />
       <workItem from="1692019641590" duration="5746000" />
       <workItem from="1692058578980" duration="3739000" />
+      <workItem from="1692066447199" duration="6000" />
+      <workItem from="1692078222871" duration="12544000" />
+      <workItem from="1692187797049" duration="4146000" />
     </task>
     <servers />
   </component>
@@ -257,40 +260,20 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/JVMMethodScan/InvokeVirtual.java</url>
-          <line>139</line>
-          <option name="timeStamp" value="6" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/DebugOption.java</url>
           <line>51</line>
           <option name="timeStamp" value="13" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/CoreMethodAdapter.java</url>
-          <line>1051</line>
-          <option name="timeStamp" value="17" />
+          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/JVMMethodScan/InvokeVirtual.java</url>
+          <line>215</line>
+          <option name="timeStamp" value="37" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <pin-to-top-manager>
-      <pinned-members>
-        <PinnedItemInfo parentTag="org.objectweb.asm.commons.AnalyzerAdapter" memberName="stack" />
-        <PinnedItemInfo parentTag="org.objectweb.asm.commons.AnalyzerAdapter" memberName="locals" />
-      </pinned-members>
-    </pin-to-top-manager>
     <watches-manager>
       <configuration name="Application">
-        <watch expression="argTypes.length" language="JAVA" />
-        <watch expression="argTaint" language="JAVA" />
-        <watch expression="resultTaint" language="JAVA" />
-        <watch expression="((AnalyzerAdapter)this).stack" language="JAVA" custom="org.objectweb.asm.commons.AnalyzerAdapter" />
-        <watch expression="((AnalyzerAdapter)((FindEvilDataflowMethodVisitor)this).mv).stack" custom="org.objectweb.asm.commons.AnalyzerAdapter,org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" />
-        <watch expression="owner" />
-        <watch expression="desc" />
-        <watch expression="((AnalyzerAdapter)((FindEvilDataflowMethodVisitor)this).mv).locals" custom="org.objectweb.asm.commons.AnalyzerAdapter,org.sec.Scan.FindEvilDiscovery.FindEvilDataflowMethodVisitor" />
-        <watch expression="operandStack.stack" />
-        <watch expression="operandStack" language="JAVA" />
+        <watch expression="findEvilDataflowMethodVisitor" />
       </configuration>
     </watches-manager>
   </component>

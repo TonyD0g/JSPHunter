@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.objectweb.asm.Type;
 import org.sec.Constant.Constant;
 import org.sec.ImitateJVM.DebugOption;
+import org.sec.ImitateJVM.currentClassQueue;
 import org.sec.Scan.FindEvilDiscovery;
 import org.sec.Scan.getAllString;
 import org.sec.utils.FileUtils;
@@ -37,14 +38,16 @@ public class InvokeVirtual {
         boolean newInstance = (owner.equals("java/lang/reflect/Constructor") && name.equals("newInstance") && desc.equals("([Ljava/lang/Object;)Ljava/lang/Object;")) || (owner.equals("java/lang/Class") && name.equals("newInstance") && desc.equals("()Ljava/lang/Object;"));
         boolean JdbcRowSetImpl = owner.equals("com/sun/rowset/JdbcRowSetImpl") && name.equals("setDataSourceName") && desc.equals("(Ljava/lang/String;)V");
         boolean URLClassloader = (owner.equals("java/net/URLClassLoader") && name.equals("loadClass") && desc.equals("(Ljava/lang/String;)Ljava/lang/Class;"));
-        boolean TemplatesImpl = (owner.equals("com/sun/org/apache/xalan/internal/xsltc/trax/TemplatesImpl") && name.equals("getOutputProperties") && desc.equals("()Ljava/util/Properties;"));
+        boolean TemplatesImplGetter = (owner.equals("com/sun/org/apache/xalan/internal/xsltc/trax/TemplatesImpl") && name.equals("getOutputProperties") && desc.equals("()Ljava/util/Properties;"));
+        boolean TemplatesImplNewTransformer = (owner.equals("com/sun/org/apache/xalan/internal/xsltc/trax/TemplatesImpl") && name.equals("newTransformer") && desc.equals("()Ljavax/xml/transform/Transformer;"));
         boolean ELProcessor = (owner.equals("javax/el/ELProcessor") && name.equals("eval") && desc.equals("(Ljava/lang/String;)Ljava/lang/Object;"));
         boolean ExpressionFactory = (owner.equals("javax/el/ExpressionFactory") && name.equals("createValueExpression") && desc.equals("(Ljavax/el/ELContext;Ljava/lang/String;Ljava/lang/Class;)Ljavax/el/ValueExpression;"));
         boolean readObject = (name.equals("readObject") && desc.equals("()Ljava/lang/Object;"));
         boolean expr = owner.equals("java/beans/Expression") && name.equals("getValue") && desc.equals("()Ljava/lang/Object;");
+        boolean TransformerFactory = owner.equals("javax/xml/transform/TransformerFactory") && name.equals("newTransformer") && desc.equals("(Ljavax/xml/transform/Source;)Ljavax/xml/transform/Transformer;");
 
         if (readObject) {
-            if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
+            if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
                 outPutEvilOutcome(printEvilMessage, classFileName, "readObject,可能为重写ObjectInputStream.resolveClass型webshell", 2, isDelete);
             }
             return "void";
@@ -65,7 +68,7 @@ public class InvokeVirtual {
                             taints.add(taintNum);
                         }
 
-                        if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
+                        if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
                             outPutEvilOutcome(printEvilMessage, classFileName, "ExpressionFactory,且参数外部可控", 1, isDelete);
                         }
                     }
@@ -167,7 +170,7 @@ public class InvokeVirtual {
                 return "void";
             }
         }
-        if (exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImpl || ELProcessor || readObject || methodInvoke || expr) {
+        if (TransformerFactory || exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImplGetter || TemplatesImplNewTransformer || ELProcessor || readObject || methodInvoke || expr) {
             if (findEvilDataflowMethodVisitor.operandStack.get(0).size() > 0) {
                 Set<Integer> taints = new HashSet<>();
                 int taintNum;
@@ -180,25 +183,44 @@ public class InvokeVirtual {
                             }
                             taints.add(taintNum);
                         }
-                        if (findEvilDataflowMethodVisitor.name.equals("_jspService")) {
-                            if (exec) {
-                                outPutEvilOutcome(printEvilMessage, classFileName, "Runtime.exec,且参数外部可控", 1, isDelete);
-                            } else if (ProcessBuilderCommand) {
-                                outPutEvilOutcome(printEvilMessage, classFileName, "ProcessBuilder,且参数外部可控", 1, isDelete);
-                            } else if (newInstance) {
-                                outPutEvilOutcome(printEvilMessage, classFileName, "newInstance,且参数外部可控", 2, isDelete);
-                            } else if (JdbcRowSetImpl) {
-                                outPutEvilOutcome(printEvilMessage, classFileName, "JdbcRowSetImpl.setDataSourceName,且参数外部可控", 2, isDelete);
-                            } else if (URLClassloader || TemplatesImpl) {
-                                outPutEvilOutcome(printEvilMessage, classFileName, "URLClassloader.loadClass 或 TemplatesImpl,且参数外部可控", 2, isDelete);
-                            } else if (ELProcessor) {
-                                outPutEvilOutcome(printEvilMessage, classFileName, "ELProcessor.eval,且参数外部可控", 1, isDelete);
-                            } else if (methodInvoke) {
-                                outPutEvilOutcome(printEvilMessage, classFileName, "methodInvoke,且参数外部可控", 1, isDelete);
-                            } else if (expr) {
-                                outPutEvilOutcome(printEvilMessage, classFileName, "Expression.getValue,且参数外部可控", 2, isDelete);
+                        try{
+                            if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
+                                if (exec) {
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "Runtime.exec,且参数外部可控", 1, isDelete);
+                                    break;
+                                } else if (ProcessBuilderCommand) {
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "ProcessBuilder,且参数外部可控", 1, isDelete);
+                                    break;
+                                } else if (newInstance) {
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "newInstance,且参数外部可控", 2, isDelete);
+                                    break;
+                                } else if (JdbcRowSetImpl) {
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "JdbcRowSetImpl.setDataSourceName,且参数外部可控", 2, isDelete);
+                                    break;
+                                } else if (URLClassloader) {
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "URLClassloader.loadClass,且参数外部可控", 2, isDelete);
+                                    break;
+                                } else if (ELProcessor) {
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "ELProcessor.eval,且参数外部可控", 1, isDelete);
+                                    break;
+                                } else if (methodInvoke) {
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "methodInvoke,且参数外部可控", 1, isDelete);
+                                    break;
+                                } else if (expr) {
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "Expression.getValue,且参数外部可控", 2, isDelete);
+                                    break;
+                                }else if(TransformerFactory){
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "TransformerFactory,且参数外部可控", 1, isDelete);
+                                    break;
+                                }else if(TemplatesImplGetter|| TemplatesImplNewTransformer){
+                                    outPutEvilOutcome(printEvilMessage, classFileName, "TemplatesImpl.getOutputProperties 或 TemplatesImpl.newTransformer,且参数外部可控", 2, isDelete);
+                                    break;
+                                }
                             }
+                        }catch (Exception e){
+                            System.out.println("[-] 该文件分析失败:    "+Constant.classNameToJspName.get(classFileName));
                         }
+
                     }
                 }
                 //将能够流入到Runtime.exec方法中的入参标记为污染点
@@ -212,7 +234,7 @@ public class InvokeVirtual {
                     toEvilTaint.put("JdbcRowSetImpl", taints);
                 } else if (URLClassloader) {
                     toEvilTaint.put("URLClassloader", taints);
-                } else if (TemplatesImpl) {
+                } else if (TemplatesImplGetter || TemplatesImplNewTransformer) {
                     toEvilTaint.put("TemplatesImpl", taints);
                 } else if (ELProcessor) {
                     toEvilTaint.put("ELProcessor", taints);
@@ -220,6 +242,8 @@ public class InvokeVirtual {
                     toEvilTaint.put("methodInvoke", taints);
                 } else if (expr) {
                     toEvilTaint.put("expr", taints);
+                }else if(TransformerFactory){
+                    toEvilTaint.put("TransformerFactory", taints);
                 }
                 findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
                 return "void";
