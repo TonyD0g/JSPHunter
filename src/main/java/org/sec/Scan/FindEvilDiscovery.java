@@ -311,10 +311,10 @@ public class FindEvilDiscovery {
                     for (Object taint : operandStack.get(0)) {
                         //获取Opcodes.BIPUSH存放进来的byte数组然后还原原貌，主应对new String(byte[])这种情况，把byte[]还原成String进行污点传递
                         if (taint instanceof ArrayList) {
-                            int len = ((ArrayList) taint).size();
+                            int len = ((ArrayList<?>) taint).size();
                             byte[] tmp = new byte[len];
                             for (int i = 0; i < len; i++) {
-                                tmp[i] = (byte) (int) (((ArrayList) taint).get(i));
+                                tmp[i] = (byte) (int) (((ArrayList<? extends Integer>) taint).get(i));
                             }
                             super.visitMethodInsn(opcode, owner, name, desc, itf);
                             operandStack.get(0).add(new String(tmp));

@@ -29,16 +29,12 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="MavenImportPreferences">
-    <option name="generalSettings">
-      <MavenGeneralSettings>
-        <option name="useMavenConfig" value="true" />
-      </MavenGeneralSettings>
-    </option>
-  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="2NSr2Anh6DRDUAdYsJ5svN0oHRp" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -49,13 +45,20 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;TODO_SCOPE&quot;: &quot;所有位置&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;extract.method.default.visibility&quot;: &quot;public&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;1.8&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/Coding/Github/JSPHunter&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;工件&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;SDK&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.31494254&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -67,7 +70,7 @@
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
       <module name="SafeTools-Boot" />
-      <option name="PROGRAM_PARAMETERS" value="-d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib" />
+      <option name="PROGRAM_PARAMETERS" value="-d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -79,10 +82,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="应用程序.Main" />
+      <item itemvalue="应用程序.processScheduling" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="应用程序.Main" />
-        <item itemvalue="应用程序.processScheduling" />
       </list>
     </recent_temporary>
   </component>
@@ -253,8 +259,21 @@
       <workItem from="1692066447199" duration="6000" />
       <workItem from="1692078222871" duration="12544000" />
       <workItem from="1692187797049" duration="4146000" />
+      <workItem from="1694228293260" duration="89000" />
+      <workItem from="1694238244548" duration="175000" />
+      <workItem from="1700643062517" duration="45000" />
+      <workItem from="1700643113679" duration="275000" />
+      <workItem from="1700643557949" duration="20000" />
+      <workItem from="1700726425064" duration="4893000" />
+      <workItem from="1700976492735" duration="17000" />
+      <workItem from="1700977322648" duration="50000" />
+      <workItem from="1700977598977" duration="90000" />
+      <workItem from="1700980564399" duration="21000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

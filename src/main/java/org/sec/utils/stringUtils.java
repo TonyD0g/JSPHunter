@@ -128,7 +128,7 @@ public class stringUtils {
 
     private static String decodeUnicode(final String dataStr) {
         int start = 0;
-        int end = 0;
+        int end;
         final StringBuilder buffer = new StringBuilder();
         while (start > -1) {
             end = dataStr.indexOf("\\u", start + 2);
@@ -139,18 +139,24 @@ public class stringUtils {
                 charStr = dataStr.substring(start + 2, end);
             }
             char letter = 0;
-            int flag = 0;
             try {
-                letter = (char) Integer.parseInt(charStr, 16); // 16进制转为int,int转char
-                flag = 1;
-            } catch (Exception ignored) {
-
+                if (charStr.matches("[0-9a-fA-F]+")) {
+                    int unicode = Integer.parseInt(charStr, 16); // 16进制转为int
+                    if (Character.isValidCodePoint(unicode)) { // 检查是否为有效Unicode字符
+                        letter = (char) unicode;
+                    } else {
+                        // 无效Unicode字符处理：将原始字符序列添加到buffer中
+                        buffer.append("\\u").append(charStr);
+                    }
+                }else {
+                    // 转换错误，将原始字符序列添加到buffer中
+                    buffer.append("\\u").append(charStr);
+                }
+            } catch (Exception e) {
+                // 转换错误，将原始字符序列添加到buffer中
+                buffer.append("\\u").append(charStr);
             }
-            if (flag == 1) {
-                buffer.append(letter);
-            } else {
-                buffer.append(charStr);
-            }
+            buffer.append(letter);
             start = end;
         }
         return buffer.toString();
