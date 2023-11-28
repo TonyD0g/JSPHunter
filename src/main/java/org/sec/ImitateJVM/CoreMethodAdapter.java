@@ -4,8 +4,8 @@ import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.sec.Scan.getAllString;
-import org.sec.utils.FileUtils;
-import org.sec.utils.stringUtils;
+import org.sec.Utils.FileUtils;
+import org.sec.Utils.stringUtils;
 
 import java.io.File;
 import java.io.IOException;

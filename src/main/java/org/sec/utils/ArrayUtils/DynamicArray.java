@@ -1,4 +1,4 @@
-package org.sec.utils.ArrayUtils;
+package org.sec.Utils.ArrayUtils;
 
 import java.util.Arrays;
 

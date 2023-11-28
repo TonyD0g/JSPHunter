@@ -1,4 +1,4 @@
-package org.sec.utils;
+package org.sec.Utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

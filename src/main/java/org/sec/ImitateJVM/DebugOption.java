@@ -1,7 +1,6 @@
 package org.sec.ImitateJVM;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * debug选项，开启后能方便调试
@@ -17,9 +16,9 @@ public class DebugOption {
     // 记录哪个字节码造成了压栈，
     public static ArrayList<Integer> whoOpcodes = new ArrayList<>();
 
-    public static String owner = new String();
-    public static String name = new String();
-    public static String desc = new String();
+    public static String owner = "";
+    public static String name = "";
+    public static String desc = "";
 
     /**
      * 恢复为初始值(除了debug选项)
@@ -33,7 +32,7 @@ public class DebugOption {
      * 记录debug选项
      */
     public static void setDebug(int opcode) {
-        if(systemDebug == false){
+        if(!systemDebug){
             return;
         }
         whoOpcodes.set(pushNum, opcode);
@@ -62,7 +61,7 @@ public class DebugOption {
             return;
         }
         System.out.println("----------------------------------------------------------------");
-        System.out.println(String.format("[ %s , %s , %s ]",owner,name,desc));
+        System.out.printf("[ %s , %s , %s ]%n",owner,name,desc);
         for (int i = 0; i < whoOpcodes.size() - 1; i++) {
             if(whoOpcodes.get(i) == 0){
                 break;

@@ -1,10 +1,13 @@
-package org.sec.utils;
+package org.sec.Utils;
+
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 public class stringUtils {
+    private static final Logger logger = Logger.getLogger(stringUtils.class);
     /**
      * 返回被 两两分割 的数组
      */
@@ -30,7 +33,6 @@ public class stringUtils {
             }
 
             intArray[i] = Integer.parseInt(j);
-            ;
         }
 
         return intArray;
@@ -40,7 +42,7 @@ public class stringUtils {
     public static String getRandomString(int length){
         String str="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Random random=new Random();
-        StringBuffer sb=new StringBuffer();
+        StringBuilder sb=new StringBuilder();
         for(int i=0;i<length;i++){
             int number=random.nextInt(62);
             sb.append(str.charAt(number));
@@ -57,9 +59,8 @@ public class stringUtils {
     /**
      * 对类型进行处理,如Ljava.lang.Object;中的L和java.lang.Object
      *
-     * @return
      */
-    public static String[] hanleFieldType(String str) {
+    public static String[] handleFieldType(String str) {
         /* 如Ljava.lang.Object;  就要被拆开为  L java.lang.Object ;
          主要有这几种类型: B - byte，C - char，D - double，F - float，I - int，J - long，S - short，Z - boolean，V - void，L - 对象类型( 如Ljava/lang/String; )，数组 - 每一个维度前置使用[表示
            (这几种类型可以随意组合!,所以要做好对应的处理,如 IL java/lang/String;)
@@ -107,7 +108,7 @@ public class stringUtils {
                 try {
                     afterDecode = decodeUnicode("\\u" + part.substring(0, 4));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("An error occurred", e);
                 }
             }
 
@@ -169,7 +170,7 @@ public class stringUtils {
         names = encodeRelativePath.split(separator);                    //兼容windows和linux的分隔符
         StringBuilder relativePath = new StringBuilder();
         for (String name : names) {
-            if (name.length() != 0) {
+            if (!name.isEmpty()) {
                 relativePath.append(decodePath(name));
                 relativePath.append(File.separator);
             }
@@ -188,6 +189,15 @@ public class stringUtils {
             unicodeBytes.append("\\u").append(hexB);
         }
         return unicodeBytes.toString();
+    }
+
+    /**
+     * 参数: 文件路径、想过滤的字符串 . 输出: 该文件路径的文件名
+     */
+    public static String getFileNameByFilter(String filePath, String filter) {
+        // 比如: filePath = "/demo/dao/impl/SQLIDaoImpl.class",filter为 "". 则输出结果为 SQLIDaoImpl.class
+        File file = new File(filePath);
+        return file.getName().replace(filter, "");
     }
 }
 

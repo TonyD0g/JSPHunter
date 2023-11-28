@@ -65,12 +65,19 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Coding\JSPHunter\src\main\java\org\sec\utils\test" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Coding\Github\JSPHunter\src\main\java\org\sec\Utils" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="org.sec.Utils" />
+      <recent name="org.sec.Data" />
+    </key>
   </component>
   <component name="RunManager" selected="应用程序.Main">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.sec.Main" />
       <module name="SafeTools-Boot" />
-      <option name="PROGRAM_PARAMETERS" value="-d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT" />
+      <option name="PROGRAM_PARAMETERS" value="-d D:\Soft\phpstudy_pro\Extensions\apache-tomcat-8.5.96\webapps\ROOT -cp D:\Soft\phpstudy_pro\Extensions\apache-tomcat-8.5.96\lib" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -280,13 +287,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/sec/ImitateJVM/DebugOption.java</url>
-          <line>51</line>
+          <line>50</line>
           <option name="timeStamp" value="13" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/sec/Scan/JVMMethodScan/InvokeVirtual.java</url>
-          <line>215</line>
-          <option name="timeStamp" value="37" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

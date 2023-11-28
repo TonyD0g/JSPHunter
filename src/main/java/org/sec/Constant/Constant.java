@@ -23,7 +23,7 @@ public class Constant {
     // 恶意类
     public static Set<String> evilClass = new HashSet<>();
     // class文件名 对应 JSP文件名
-    public static Map classNameToJspName = new HashMap();
+    public static Map<String ,String> classNameToJspName = new HashMap<>();
     // 消息列表
     public static List<String> msgList = new ArrayList<>();
 }

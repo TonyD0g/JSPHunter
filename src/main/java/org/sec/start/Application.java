@@ -1,4 +1,4 @@
-package org.sec.start;
+package org.sec.Start;
 
 import com.beust.jcommander.JCommander;
 import org.apache.log4j.Logger;
@@ -7,10 +7,10 @@ import org.sec.ImitateJVM.DebugOption;
 import org.sec.JSP.JspAnalysis;
 import org.sec.Scan.FindEvilDiscovery;
 import org.sec.Scan.JVMMethodScan.InvokeVirtual;
-import org.sec.input.Command;
-import org.sec.input.CommandChoice;
-import org.sec.utils.FileUtils;
-import org.sec.utils.stringUtils;
+import org.sec.Input.Command;
+import org.sec.Input.CommandChoice;
+import org.sec.Utils.FileUtils;
+import org.sec.Utils.stringUtils;
 import org.sec.Scan.PassthroughDiscovery;
 
 import java.io.File;
@@ -53,11 +53,7 @@ class CommandChoiceTest extends CommandChoice {
         }
         DebugOption.userDebug = command.debug;
         InvokeVirtual.getInfoFlag = command.info;
-        if (command.delete) {
-            Analysis(command, true);
-        } else {
-            Analysis(command, false);
-        }
+        Analysis(command, command.delete);
         return true;
     }
 
@@ -76,7 +72,9 @@ class CommandChoiceTest extends CommandChoice {
                 Constant.sortedMethodCalls.clear();
                 Constant.classFileNameToByte.clear();
 
-                FileUtils.flushDir("JspCompile");
+                if(!FileUtils.flushDir("JspCompile")){
+                    return;
+                }
                 ArrayList<String> jspFilePathList = new ArrayList<>();
                 FileUtils.getWantSuffixFilePath(webDir, "jsp", jspFilePathList);
                 ArrayList<String> jarFilePath = new ArrayList<>();
@@ -122,7 +120,7 @@ class CommandChoiceTest extends CommandChoice {
                 // 扫描是否存在恶意利用链
                 FindEvilDiscovery findEvilDiscovery = new FindEvilDiscovery();
                 findEvilDiscovery.discover(delete);
-                if (Constant.compileErrorFileNameList.size() != 0) {
+                if (!Constant.compileErrorFileNameList.isEmpty()) {
                     System.out.println("[-] jasper编译失败的文件:");
                     System.out.println(Constant.compileErrorFileNameList);
                     System.out.println("\n---------------------------------------------------------------------------\n" + "[+] 扫描结束");

@@ -1,4 +1,4 @@
-package org.sec.input;
+package org.sec.Input;
 
 import com.beust.jcommander.Parameter;
 /** [+] 处理用户输入的参数 */

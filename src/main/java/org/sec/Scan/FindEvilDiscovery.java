@@ -103,7 +103,7 @@ public class FindEvilDiscovery {
         }
     }
 
-    public class FindEvilDataflowMethodVisitor extends CoreMethodAdapter {
+    public static class FindEvilDataflowMethodVisitor extends CoreMethodAdapter {
         private final Map<String, Set<Integer>> toEvilTaint;//被污染的返回数据,key的值为恶意类的类型，比如:Runtime/ProcessBuilder/Behinder
         public Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow;
         private final int access;
@@ -114,7 +114,7 @@ public class FindEvilDiscovery {
         public String classFileName;
         public Set<Integer> printEvilMessage;
 
-        private boolean isDelete;
+        private final boolean isDelete;
 
         public FindEvilDataflowMethodVisitor(Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow, int api, int access, String desc, MethodVisitor mv, String owner, String name, String signature, String[] exceptions, String classFileName, Set<Integer> printEvilMessage, boolean isDelete) {
             super(api, mv, owner, access, name, desc, signature, exceptions);
@@ -231,19 +231,19 @@ public class FindEvilDiscovery {
                     // 下面都是用于 处理多层函数嵌套,单函数不用管
                     //调用之前PassthroughDiscovery的污染结果，看当前调用到的类是否可以污染，如果可以污染,就把污染参数传递给高一层
                     Set<Integer> passthrough = Constant.passthroughDataflow.get(new MethodReference.Handle(owner, name, desc));
-                    if (passthrough != null && passthrough.size() > 0) {
+                    if (passthrough != null && !passthrough.isEmpty()) {
                         for (Integer passthroughDataflowArg : passthrough) {
-                            resultTaint.addAll(argTaint.get(new Integer(passthroughDataflowArg)));
+                            resultTaint.addAll(argTaint.get(passthroughDataflowArg));
                         }
                     }
 
                     // 前面已做逆拓扑，调用链最末端最先被visit，因此，调用到的方法必然已被visit分析过
                     Map<String, Set<Integer>> evilMethodDataflow = EvilDataflow.get(new MethodReference.Handle(owner, name, desc));
-                    if (evilMethodDataflow != null && evilMethodDataflow.size() > 0) {
+                    if (evilMethodDataflow != null && !evilMethodDataflow.isEmpty()) {
                         for (String evilType : evilMethodDataflow.keySet()) {
                             Set<Integer> taints = new HashSet<>();
                             Set<Integer> evilMethodDataflowArgList = evilMethodDataflow.get(evilType);
-                            if (evilMethodDataflowArgList != null && evilMethodDataflowArgList.size() > 0) {
+                            if (evilMethodDataflowArgList != null && !evilMethodDataflowArgList.isEmpty()) {
                                 for (Integer evilMethodDataflowArg : evilMethodDataflowArgList) {
                                     //表示argTaint.get(new Integer(evilMethodDataflowArg))里的那个值对应的参数能污染到危险方法
                                     Set<Integer> tmpTaints = argTaint.get(evilMethodDataflowArg);
@@ -336,7 +336,7 @@ public class FindEvilDiscovery {
                         int size = argType.getSize();
                         while (size-- > 0) {
                             Set taintList = operandStack.get(k);
-                            if (taintList.size() > 0) {
+                            if (!taintList.isEmpty()) {
                                 listAll.addAll(taintList);
                             }
                             k++;
@@ -347,7 +347,7 @@ public class FindEvilDiscovery {
                     return;
                 }
                 if (processBuilderInit) {
-                    if (operandStack.get(0).size() > 0) {
+                    if (!operandStack.get(0).isEmpty()) {
                         Set<Integer> taints = new HashSet<>();
                         for (Object node : operandStack.get(0)) {
                             if (node instanceof Integer) {
@@ -367,7 +367,7 @@ public class FindEvilDiscovery {
                     }
                 }
 
-                if (stringBuilderInit && operandStack.get(0).size() > 0) {
+                if (stringBuilderInit && !operandStack.get(0).isEmpty()) {
                     Set taintList = operandStack.get(0);
                     super.visitMethodInsn(opcode, owner, name, desc, itf);
                     operandStack.get(0).addAll(taintList);
@@ -379,7 +379,7 @@ public class FindEvilDiscovery {
                     Type[] argumentTypes = Type.getArgumentTypes(desc);
                     //operandStack.get(argumentTypes.length-1)表示取出defineClass第1号位置的污点集合
                     Set<Integer> taints = null;
-                    if (operandStack.get(argumentTypes.length - 1).size() > 0) {
+                    if (!operandStack.get(argumentTypes.length - 1).isEmpty()) {
                         taints = new HashSet<>();
                         int taintNum = 0;
                         for (Object node : operandStack.get(argumentTypes.length - 1)) {
@@ -409,7 +409,7 @@ public class FindEvilDiscovery {
                 boolean JspRuntimeLibrary = owner.equals("org/apache/jasper/runtime/JspRuntimeLibrary") && name.equals("introspect") && desc.equals("(Ljava/lang/Object;Ljavax/servlet/ServletRequest;)V");
                 // boolean TransformerFactory = owner.equals("javax/xml/transform/TransformerFactory") && name.equals("newInstance") && desc.equals("()Ljavax/xml/transform/TransformerFactory;");
 
-                if ((isMethodUtilInvoke || JspRuntimeLibrary) && operandStack.get(0).size() > 0) {
+                if ((isMethodUtilInvoke || JspRuntimeLibrary) && !operandStack.get(0).isEmpty()) {
                     Set<Integer> taints = new HashSet<>();
                     for (Object node : operandStack.get(0)) {
                         if (node instanceof Integer) {
@@ -436,7 +436,7 @@ public class FindEvilDiscovery {
                     return;
                 }
 
-                if ((isValueOf) && operandStack.get(0).size() > 0) {
+                if ((isValueOf) && !operandStack.get(0).isEmpty()) {
                     Set taintList = operandStack.get(0);
                     super.visitMethodInsn(opcode, owner, name, desc, itf);
                     operandStack.get(0).addAll(taintList);
@@ -466,7 +466,7 @@ public class FindEvilDiscovery {
         public void visitInsn(int opcode) {
             if (opcode == Opcodes.AASTORE) {
                 Set taintList = operandStack.get(0);
-                if (taintList.size() > 0) {
+                if (!taintList.isEmpty()) {
                     super.visitInsn(opcode);
                     // 这里涉及一个很坑的问题，如果是p[i]="456"+p[i]+"123"这种情况，当执行aastore指令的时候，操作栈中只有三个，super.visitInsn(Opcodes.AASTORE)一调用，栈中空了，再取 operandStack.get(0)会报错
                     if (operandStack.size() > 0) {
@@ -478,14 +478,14 @@ public class FindEvilDiscovery {
             if (opcode == Opcodes.BASTORE) {
                 Set taintList = operandStack.get(0);
                 super.visitInsn(opcode);
-                if (taintList.size() > 0) {
+                if (!taintList.isEmpty()) {
                     for (Object tmpObj : operandStack.get(0)) {
                         if (tmpObj instanceof ArrayList) {
                             ((ArrayList) tmpObj).addAll(taintList);
                             return;
                         }
                     }
-                    ArrayList list = new ArrayList<>();
+                    ArrayList<Object> list = new ArrayList<>();
                     list.addAll(taintList);
                     operandStack.set(0, list);
                 }
@@ -495,7 +495,7 @@ public class FindEvilDiscovery {
                 //operandStack.get(1)为数组对象
                 Set taintList = operandStack.get(1);
                 super.visitInsn(opcode);
-                if (taintList.size() > 0) {
+                if (!taintList.isEmpty()) {
                     operandStack.get(0).addAll(taintList);
                 }
                 return;

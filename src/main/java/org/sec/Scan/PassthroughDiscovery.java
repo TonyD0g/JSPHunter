@@ -15,7 +15,7 @@ import java.util.*;
 public class PassthroughDiscovery {
     private static final Logger logger = Logger.getLogger(PassthroughDiscovery.class);
 
-    private Map<String, Map<MethodReference.Handle, Set<MethodReference.Handle>>> classFileNameToMethodCalls = new HashMap<>();
+    private final Map<String, Map<MethodReference.Handle, Set<MethodReference.Handle>>> classFileNameToMethodCalls = new HashMap<>();
 
     public void discover() throws IOException, ClassNotFoundException {
         discoverMethodCalls();
@@ -72,7 +72,7 @@ public class PassthroughDiscovery {
         for (MethodReference.Handle root : outgoingReferences.keySet()) {
             //遍历集合中的起始方法，进行递归搜索DFS，通过逆拓扑排序，调用链的最末端排在最前面，
             // 这样才能实现入参、返回值、函数调用链之间的污点影响
-            dfsTsort(outgoingReferences, sortedMethods, visitedNodes, dfsStack, root);
+            dfsSort(outgoingReferences, sortedMethods, visitedNodes, dfsStack, root);
         }
         logger.debug(String.format("Outgoing references %d, sortedMethods %d", outgoingReferences.size(), sortedMethods.size()));
         Constant.sortedMethodCalls.addAll(sortedMethods);
@@ -103,7 +103,7 @@ public class PassthroughDiscovery {
 
             Set<Integer> passthroughArgs = new HashSet<>();
             for (String arg : fields[3].split(",")) {
-                if (arg.length() > 0) {
+                if (!arg.isEmpty()) {
                     passthroughArgs.add(Integer.parseInt(arg));
                 }
             }
@@ -112,7 +112,7 @@ public class PassthroughDiscovery {
 
         @Override
         public String[] serialize(Map.Entry<MethodReference.Handle, Set<Integer>> entry) {
-            if (entry.getValue().size() == 0) {
+            if (entry.getValue().isEmpty()) {
                 return null;
             }
 
@@ -135,9 +135,9 @@ public class PassthroughDiscovery {
     /**
      * 利用深度优先搜索去逆拓扑
      */
-    private static void dfsTsort(Map<MethodReference.Handle, Set<MethodReference.Handle>> outgoingReferences,
-                                 List<MethodReference.Handle> sortedMethods, Set<MethodReference.Handle> visitedNodes,
-                                 Set<MethodReference.Handle> stack, MethodReference.Handle node) {
+    private static void dfsSort(Map<MethodReference.Handle, Set<MethodReference.Handle>> outgoingReferences,
+                                List<MethodReference.Handle> sortedMethods, Set<MethodReference.Handle> visitedNodes,
+                                Set<MethodReference.Handle> stack, MethodReference.Handle node) {
 
         if (stack.contains(node)) {
             return;
@@ -154,7 +154,7 @@ public class PassthroughDiscovery {
         //入栈，以便于递归不造成类似循环引用的死循环整合
         stack.add(node);
         for (MethodReference.Handle child : outgoingRefs) {
-            dfsTsort(outgoingReferences, sortedMethods, visitedNodes, stack, child);
+            dfsSort(outgoingReferences, sortedMethods, visitedNodes, stack, child);
         }
         stack.remove(node);
         visitedNodes.add(node);//记录已被探索过的方法，用于在上层调用遇到重复方法时可以跳过
@@ -163,7 +163,7 @@ public class PassthroughDiscovery {
 
     private void calculatePassthroughDataflow() throws IOException, ClassNotFoundException {
         final Map<MethodReference.Handle, Set<Integer>> passthroughDataflow;
-        if (Constant.passthroughDataflow.size() == 0) {
+        if (Constant.passthroughDataflow.isEmpty()) {
             passthroughDataflow = load();
         } else {
             passthroughDataflow = Constant.passthroughDataflow;
@@ -181,7 +181,7 @@ public class PassthroughDiscovery {
         Constant.passthroughDataflow = passthroughDataflow;
     }
 
-    public class PassthroughDataflowClassVisitor extends ClassVisitor {
+    public static class PassthroughDataflowClassVisitor extends ClassVisitor {
         private PassthroughDataflowMethodVisitor passthroughDataflowMethodVisitor;
         private final Map<MethodReference.Handle, Set<Integer>> passthroughDataflow;
         private final MethodReference.Handle methodToVisit;
@@ -224,7 +224,7 @@ public class PassthroughDiscovery {
     /**
      * 污点分析的起始位置
      */
-    public class PassthroughDataflowMethodVisitor extends CoreMethodAdapter {
+    public static class PassthroughDataflowMethodVisitor extends CoreMethodAdapter {
         private final Set<Integer> returnTaint;//被污染的返回数据
         private final Map<MethodReference.Handle, Set<Integer>> passthroughDataflow;
         private final int access;
@@ -284,8 +284,8 @@ public class PassthroughDiscovery {
                 case Opcodes.LRETURN://从当前方法返回long
                 case Opcodes.DRETURN://从当前方法返回double
                     // 与上同理
-                    Set taintss = operandStack.get(1);
-                    for (Object taint : taintss) {
+                    Set OtherTaints = operandStack.get(1);
+                    for (Object taint : OtherTaints) {
                         if (taint instanceof Integer) {
                             returnTaint.add((Integer) taint);
                         }
@@ -301,7 +301,7 @@ public class PassthroughDiscovery {
                 //operandStack.get(1)为数组对象
                 Set taintList = operandStack.get(1);
                 super.visitInsn(opcode);
-                if (taintList.size() > 0) {
+                if (!taintList.isEmpty()) {
                     operandStack.get(0).addAll(taintList);
                 }
                 return;
@@ -309,7 +309,7 @@ public class PassthroughDiscovery {
             if (opcode == Opcodes.AASTORE) {
                 Set taintList = operandStack.get(0);
                 super.visitInsn(opcode);
-                if (taintList.size() > 0) {
+                if (!taintList.isEmpty()) {
                     operandStack.get(0).addAll(taintList);
                 }
                 return;
@@ -410,7 +410,7 @@ public class PassthroughDiscovery {
     // classVisitor
     private static class MethodCallDiscoveryClassVisitor extends ClassVisitor {
         private String name;
-        private Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCalls = new HashMap<>();
+        private final Map<MethodReference.Handle, Set<MethodReference.Handle>> methodCalls = new HashMap<>();
 
         public MethodCallDiscoveryClassVisitor() {
             super(Opcodes.ASM5);

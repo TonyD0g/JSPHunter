@@ -39,7 +39,9 @@ public class JspAnalysis {
                 i++;
                 if (flag == 0) {
                     logger.info("[-] The jsp file is error! : " + file);
-                    Constant.compileErrorFileNameList.put(i, file.substring(file.lastIndexOf(File.separator) + 1));
+                    if (file != null) {
+                        Constant.compileErrorFileNameList.put(i, file.substring(file.lastIndexOf(File.separator) + 1));
+                    }
                 } else {
                     logger.info("[-] The jsp file is error! : " + jspFilePath);
                     Constant.compileErrorFileNameList.put(i, jspFilePath.substring(jspFilePath.lastIndexOf(File.separator) + 1));

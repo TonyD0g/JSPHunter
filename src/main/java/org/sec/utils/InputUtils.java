@@ -1,4 +1,4 @@
-package org.sec.utils;
+package org.sec.Utils;
 
 import org.apache.log4j.Logger;
 

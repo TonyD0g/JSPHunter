@@ -7,7 +7,7 @@ import org.sec.ImitateJVM.DebugOption;
 import org.sec.ImitateJVM.currentClassQueue;
 import org.sec.Scan.FindEvilDiscovery;
 import org.sec.Scan.getAllString;
-import org.sec.utils.FileUtils;
+import org.sec.Utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class InvokeVirtual {
         if (ExpressionFactory) {
             Type[] argumentTypes = Type.getArgumentTypes(desc);
             Set<Integer> taints = null;
-            if (findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length - 1).size() > 0) {
+            if (!findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length - 1).isEmpty()) {
                 taints = new HashSet<>();
                 int taintNum = 0;
                 for (Object node : findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length - 1)) {
@@ -85,7 +85,7 @@ public class InvokeVirtual {
                 int size = argType.getSize();
                 while (size-- > 0) {
                     Set taintList = findEvilDataflowMethodVisitor.operandStack.get(k);
-                    if (taintList.size() > 0) {
+                    if (!taintList.isEmpty()) {
                         listAll.addAll(taintList);
                     }
                     k++;
@@ -132,12 +132,12 @@ public class InvokeVirtual {
                     return "void";
                 }
             }
-            if (encodeString.length() > 0) {
-                String decodeString = new String();
+            if (!encodeString.isEmpty()) {
+                String decodeString = "";
                 try {
                     decodeString = new String(new sun.misc.BASE64Decoder().decodeBuffer(encodeString));
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("An error occurred", e);
                 }
                 List newTaintList = new ArrayList<>(taintList);
                 newTaintList.set(taintNum, decodeString);
@@ -160,7 +160,7 @@ public class InvokeVirtual {
                     try {
                         findEvilDataflowMethodVisitor.operandStack.get(0).add(new String(new sun.misc.BASE64Decoder().decodeBuffer(new String(tmp))));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error("An error occurred", e);
                     }
                     return "void";
                 }
@@ -171,7 +171,7 @@ public class InvokeVirtual {
             }
         }
         if (TransformerFactory || exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImplGetter || TemplatesImplNewTransformer || ELProcessor || readObject || methodInvoke || expr) {
-            if (findEvilDataflowMethodVisitor.operandStack.get(0).size() > 0) {
+            if (!findEvilDataflowMethodVisitor.operandStack.get(0).isEmpty()) {
                 Set<Integer> taints = new HashSet<>();
                 int taintNum;
                 for (Object node : findEvilDataflowMethodVisitor.operandStack.get(0)) {
@@ -249,19 +249,19 @@ public class InvokeVirtual {
                 return "void";
             }
         }
-        if (append && (findEvilDataflowMethodVisitor.operandStack.get(0).size() > 0 || findEvilDataflowMethodVisitor.operandStack.get(1).size() > 0)) {
+        if (append && (!findEvilDataflowMethodVisitor.operandStack.get(0).isEmpty() || !findEvilDataflowMethodVisitor.operandStack.get(1).isEmpty())) {
             Set taintList1 = findEvilDataflowMethodVisitor.operandStack.get(0);
             Set taintList2 = findEvilDataflowMethodVisitor.operandStack.get(1);
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
-            if (taintList1.size() > 0) {
+            if (!taintList1.isEmpty()) {
                 findEvilDataflowMethodVisitor.operandStack.get(0).addAll(taintList1);
             }
-            if (taintList2.size() > 0) {
+            if (!taintList2.isEmpty()) {
                 findEvilDataflowMethodVisitor.operandStack.get(0).addAll(taintList2);
             }
             return "void";
         }
-        if (toString && findEvilDataflowMethodVisitor.operandStack.get(0).size() > 0) {
+        if (toString && !findEvilDataflowMethodVisitor.operandStack.get(0).isEmpty()) {
             Set taintList = findEvilDataflowMethodVisitor.operandStack.get(0);
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
             findEvilDataflowMethodVisitor.operandStack.get(0).addAll(taintList);
@@ -271,10 +271,10 @@ public class InvokeVirtual {
             Type[] argumentTypes = Type.getArgumentTypes(desc);
             //operandStack.get(argumentTypes.length)表示取出实体类中的污点
             Set trains = findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length);
-            if (trains.size() > 0) {
+            if (!trains.isEmpty()) {
                 Set tmpTaints = findEvilDataflowMethodVisitor.operandStack.get(argumentTypes.length - 1);
                 for (Object tmpTaint : tmpTaints) {
-                    if (tmpTaint instanceof String && ((String) tmpTaint).indexOf("instruction") > -1) {
+                    if (tmpTaint instanceof String && ((String) tmpTaint).contains("instruction")) {
                         String localVariablesNum = ((String) tmpTaint).substring(11);
                         findEvilDataflowMethodVisitor.localVariables.get(new Integer(localVariablesNum)).addAll(trains);
                     }
@@ -284,7 +284,7 @@ public class InvokeVirtual {
         if (methodInvoke) {
             //表示取出method类实例上的污点
             Set<Integer> taints = argTaint.get(0);
-            if (taints.size() > 0) {
+            if (!taints.isEmpty()) {
                 for (Object taint : taints) {
                     if (taint instanceof String && taint.equals("defineClass")) {
                         //表示取出被调用方法也就是invoke的第二个参数
@@ -320,7 +320,7 @@ public class InvokeVirtual {
             }
 
             if (isDelete && anomalyDegree == 1) {
-                String wantDelete = (String) Constant.classNameToJspName.get(classFileName);
+                String wantDelete = Constant.classNameToJspName.get(classFileName);
                 String realFileName = wantDelete.substring(wantDelete.lastIndexOf(File.separator) + 1);
                 String path = wantDelete.substring(0, wantDelete.lastIndexOf(File.separator) + 1);
                 File deleteFile = new File(path + realFileName);

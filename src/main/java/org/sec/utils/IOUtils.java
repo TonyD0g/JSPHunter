@@ -1,4 +1,4 @@
-package org.sec.utils;
+package org.sec.Utils;
 
 import java.io.Closeable;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package org.sec.utils.ArrayUtils;
+package org.sec.Utils.ArrayUtils;
 
 /** [+] 动态数组的基石*/
 public abstract class ArrayList {

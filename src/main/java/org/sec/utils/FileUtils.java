@@ -1,8 +1,9 @@
-package org.sec.utils;
+package org.sec.Utils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,13 +19,12 @@ public class FileUtils {
     private static final boolean DEBUG = true;
 
     /** 创建文件 */
-    public static boolean creatFile(String filePath){
+    public static boolean createFile(String filePath){
         File file = new File(filePath);
         try {
-            file.createNewFile();
-            return true;
+            return file.createNewFile();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("An error occurred", e);
         }
         return false;
     }
@@ -33,7 +33,7 @@ public class FileUtils {
      * 获取文件路径
      */
     public static String getFilePath(String relativePath) {
-        String dir = FileUtils.class.getResource("/").getPath();
+        String dir = Objects.requireNonNull(FileUtils.class.getResource("/")).getPath();
         return dir + relativePath;
     }
 
@@ -41,7 +41,7 @@ public class FileUtils {
      * 返回字节码文件路径
      */
     public static String getFilePath(Class<?> clazz, String className) {
-        String path = clazz.getResource("/").getPath();
+        String path = Objects.requireNonNull(clazz.getResource("/")).getPath();
         return String.format("%s%s.class", path, className.replace('.', File.separatorChar));
     }
 
@@ -78,7 +78,7 @@ public class FileUtils {
 
             return bao.toByteArray();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("An error occurred", e);
         } finally {
             IOUtils.closeQuietly(in);
         }
@@ -89,12 +89,12 @@ public class FileUtils {
     /**
      * 读文件 (读取)
      */
-    public static FileReader readForName(String name) throws Exception {
+    public static FileReader readForName(String name) {
         FileReader fileName = null;
         try {
             fileName = new FileReader(String.format("src/main/java/Data/%s", name));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            logger.error("An error occurred", e);
         }
         return fileName;
     }
@@ -131,7 +131,7 @@ public class FileUtils {
             }
             return list;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("An error occurred", e);
         } finally {
             IOUtils.closeQuietly(bufferReader);
             IOUtils.closeQuietly(reader);
@@ -174,7 +174,7 @@ public class FileUtils {
             IOUtils.copy(in, out);
             return out.toByteArray();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("An error occurred", e);
         } finally {
             if (close) {
                 IOUtils.closeQuietly(in);
@@ -195,12 +195,12 @@ public class FileUtils {
         File dirFile = file.getParentFile();
         mkdir(dirFile);
 
-        try (OutputStream out = new FileOutputStream(filepath);
+        try (OutputStream out = Files.newOutputStream(Paths.get(filepath));
              BufferedOutputStream buff = new BufferedOutputStream(out)) {
             buff.write(bytes);
             buff.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("An error occurred", e);
         }
 
         if (DEBUG) logger.info("file://" + filepath);
@@ -210,7 +210,7 @@ public class FileUtils {
      * 将多行写到文件 (写入)
      */
     public static void writeLines(String filepath, List<String> lines) {
-        if (lines == null || lines.size() < 1) return;
+        if (lines == null || lines.isEmpty()) return;
 
         File file = new File(filepath);
         File dirFile = file.getParentFile();
@@ -221,7 +221,7 @@ public class FileUtils {
         BufferedWriter bufferedWriter = null;
 
         try {
-            out = new FileOutputStream(file);
+            out = Files.newOutputStream(file.toPath());
             writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
             bufferedWriter = new BufferedWriter(writer);
 
@@ -229,8 +229,8 @@ public class FileUtils {
                 bufferedWriter.write(line);
                 bufferedWriter.newLine();
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            logger.error("An error occurred", e);
         } finally {
             IOUtils.closeQuietly(bufferedWriter);
             IOUtils.closeQuietly(writer);
@@ -260,12 +260,12 @@ public class FileUtils {
     /**
      * 刷新目录
      */
-    public static void flushDir(String wantFlushDir) {
+    public static boolean flushDir(String wantFlushDir) {
         File file = new File(wantFlushDir);
         if (file.exists()) {
             delete(file);
         }
-        file.mkdir();
+        return file.mkdir();
     }
 
     /**
@@ -291,11 +291,11 @@ public class FileUtils {
     /**
      * 读取dir下的所有文件,返回绝对路径列表 (读取)
      */
-    public static ArrayList<String> readDir(String pathName, ArrayList<String> fileNameList) {
+    public static void readDir(String pathName, ArrayList<String> fileNameList) {
         File folder = new File(pathName);
         if (!folder.isDirectory()) {
             fileNameList.add(folder.getAbsolutePath());
-            return null;
+            return;
         }
         File[] files = folder.listFiles();
         assert files != null;
@@ -307,13 +307,12 @@ public class FileUtils {
             }
         }
 
-        return fileNameList;
     }
 
     /**
      * 读取 WebDir (读取)
      */
-    public static Set<String> readWebDir(String webDir, Set<String> webDirSet) {
+    public static void readWebDir(String webDir, Set<String> webDirSet) {
         ArrayList<String> allFileName = new ArrayList<>();
         readDir(webDir, allFileName);
         for (String filename : allFileName) {
@@ -323,7 +322,6 @@ public class FileUtils {
                 webDirSet.add(filename.substring(0, point));
             }
         }
-        return webDirSet;
     }
 
     /**
@@ -336,7 +334,7 @@ public class FileUtils {
 
         if (file.isDirectory()) {
             File[] files = file.listFiles();
-            if (files != null && files.length > 0) {
+            if (files != null) {
                 for (File f : files) {
                     delete(f);
                 }
