@@ -1,9 +1,20 @@
 package org.sec.Scan;
 
-/** JSPHunter内置的污点源 */
+import org.sec.Constant.Constant;
+import org.sec.ImitateJVM.CoreMethodAdapter;
+import org.sec.Utils.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
+/**
+ * JSPHunter内置的污点源
+ */
 public class stainSource {
     // 使用黑名单的方式去匹配 能外界输入的类,对应的方法,对应参数(0为主体,1~n为参数)
     public static final Object[][] PASSTHROUGH_DATAFLOW;
+
     static {
         // 内置污点源,为默认污点源
         PASSTHROUGH_DATAFLOW = new Object[][]{
@@ -91,5 +102,39 @@ public class stainSource {
 
         };
     }
+
     public static Object[][] tmpPASSTHROUGH_DATAFLOW;
+
+    // Stain source
+    public static void getStainSource(ArrayList<Object[]> PASSTHROUGH_DATAFLOW) {
+        for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
+            Constant.lines.add(passthrough[0] + "\t" + passthrough[1] + "\t" + passthrough[2] + "\t" + passthrough[3]);
+        }
+        FileUtils.writeLines("." + File.separator + "stainSource.txt", Constant.lines);
+    }
+
+    public static void getStainSource(Object[][] PASSTHROUGH_DATAFLOW) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("\t");
+        for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
+            for (int i = 3; i < passthrough.length; i++) {
+                stringBuilder.append(passthrough[i]);
+                stringBuilder.append(',');
+            }
+            Constant.lines.add(passthrough[0] + "\t" + passthrough[1] + "\t" + passthrough[2] + stringBuilder);
+            stringBuilder.delete(1, stringBuilder.length());
+        }
+
+        // 如果没有stainSource.txt则创建,并写入内置污点源
+        File stainSource = new File("." + File.separator + "stainSource.txt");
+        if (!stainSource.exists()) {
+            try {
+                stainSource.createNewFile();
+                // FileUtils.writeLines("." + File.separator + "stainSource.txt", CoreMethodAdapter.lines);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
 }

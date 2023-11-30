@@ -68,9 +68,6 @@ public class FindEvilDiscovery {
             //对method进行观察
             MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
             if (name.equals(this.methodToVisit.getName())) {
-                if (DebugOption.userDebug) {
-                    logger.info("观察的类为:" + this.name + "     观察的方法为:" + name);
-                }
                 findEvilDataflowMethodVisitor = new FindEvilDataflowMethodVisitor(EvilDataflow, Opcodes.ASM5, access, descriptor, mv, this.name, name, signature, exceptions, classFileName, printEvilMessage, isDelete);
                 EvilDataflow.put(new MethodReference.Handle(this.name, name, descriptor), getReturnTaint());
                 return new JSRInlinerAdapter(findEvilDataflowMethodVisitor, access, name, descriptor, signature, exceptions);
@@ -269,11 +266,10 @@ public class FindEvilDiscovery {
                                     logger.info(msg);
                                     Constant.evilClass.add(classFileName);
                                     Constant.msgList.add(msg);
+                                    if (DebugOption.userDebug) {
+                                        Constant.currentPrintTaint.printCurrentTaintStack("ClassLoader.defineClass 或" + evilType);
+                                    }
                                 }
-                            }
-                            if (DebugOption.userDebug) {
-                                logger.info("类:" + this.owner + "方法:" + this.name + "调用到被污染方法:" + name);
-                                logger.info("污染点为:" + tains);
                             }
                         }
                     }
@@ -352,12 +348,12 @@ public class FindEvilDiscovery {
                         for (Object node : operandStack.get(0)) {
                             if (node instanceof Integer) {
                                 int taintNum = (Integer) node;
-                                if (DebugOption.userDebug) {
-                                    logger.info("ProcessBuilder可被arg" + taintNum + "污染");
-                                }
                                 taints.add(taintNum);
                                 if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "ProcessBuilder,且外部可控", 1, this.isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "ProcessBuilder,且外部可控", 1, this.isDelete);
+                                    if (DebugOption.userDebug) {
+                                        Constant.currentPrintTaint.printCurrentTaintStack("ProcessBuilder");
+                                    }
                                 }
                             }
                         }
@@ -386,13 +382,13 @@ public class FindEvilDiscovery {
                             if (node instanceof Integer || ((node instanceof String && ((String) node).contains("instruction")))) {
                                 if (node instanceof Integer) {
                                     taintNum = (Integer) node;
-                                    if (DebugOption.userDebug) {
-                                        logger.info("ClassLoader的defineClass可被arg" + taintNum + "污染");
-                                    }
                                     taints.add(taintNum);
                                 }
                                 if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "defineClass或URLClassLoaderInit或ObjectInputStreamResolveClass,且受外部控制", 1, this.isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "defineClass或URLClassLoaderInit或ObjectInputStreamResolveClass,且受外部控制", 1, this.isDelete);
+                                    if (DebugOption.userDebug) {
+                                        Constant.currentPrintTaint.printCurrentTaintStack("ClassLoader的defineClass");
+                                    }
                                 }
                             }
                         }
@@ -414,21 +410,17 @@ public class FindEvilDiscovery {
                     for (Object node : operandStack.get(0)) {
                         if (node instanceof Integer) {
                             int taintNum = (Integer) node;
-                            if (DebugOption.userDebug) {
-                                logger.info("恶意类 可被arg" + taintNum + "污染");
-                            }
                             taints.add(taintNum);
                             if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
                                 if (isMethodUtilInvoke) {
-                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "MethodUtil.invoke", 1, this.isDelete);
-                                    break;
-                                } else if (JspRuntimeLibrary) {
-                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, this.isDelete);
-                                    break;
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "MethodUtil.invoke", 1, this.isDelete);
                                 } else {
-                                    InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, "TransformerFactory 的 newInstance", 1, this.isDelete);
-                                    break;
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, this.isDelete);
                                 }
+                                if (DebugOption.userDebug) {
+                                    Constant.currentPrintTaint.printCurrentTaintStack("MethodUtil 或 JspRuntimeLibrary");
+                                }
+                                break;
                             }
                         }
                     }

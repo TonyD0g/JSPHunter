@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.objectweb.asm.Type;
 import org.sec.Constant.Constant;
 import org.sec.Scan.FindEvilDiscovery;
+import org.sec.Scan.outPut;
 
 import java.util.HashSet;
 import java.util.List;
@@ -21,28 +22,20 @@ public class InvokeInterface {
 
         if (scriptEngineEval) {
             Set<Integer> taintList = argTaint.get(1);
-            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine", 1, isDelete);
+            return "success";
         }
 
         if (scriptEnginePut) {
             Set<Integer> taintList = argTaint.get(2);
-            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine", 1, isDelete);
+            return "success";
         }
         if (isMethodAccessorInvoke) {
             Set<Integer> taintList = argTaint.get(0);
-            outPutEvilOutcome(printEvilMessage, classFileName, toEvilTaint, taintList, "MethodAccessor.Invoke", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "MethodAccessor.Invoke", 1, isDelete);
+            return "success";
         }
         return "";
-    }
-
-    public static void outPutEvilOutcome(Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, Set<Integer> taintList, String evilType, int anomalyDegree, boolean isDelete) {
-        Set tmpTaintList = new HashSet();
-        for (Object taint : taintList) {
-            if (taint instanceof Integer || (taint instanceof String)) {
-                InvokeVirtual.outPutEvilOutcome(printEvilMessage, classFileName, evilType, anomalyDegree, isDelete);
-                tmpTaintList.add(taint);
-            }
-        }
-        toEvilTaint.put(evilType, tmpTaintList);
     }
 }

@@ -3,17 +3,14 @@ package org.sec.ImitateJVM;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
+import org.sec.Constant.Constant;
 import org.sec.Scan.getAllString;
 import org.sec.Utils.FileUtils;
 import org.sec.Utils.stringUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import static org.sec.Scan.stainSource.PASSTHROUGH_DATAFLOW;
 
 /**
  * 模拟栈帧的核心方法
@@ -36,35 +33,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
     public OperandStack<T> operandStack;
     public LocalVariables<T> localVariables;
     public static String[] finalPassthrough;
-    public static List<String> lines = new ArrayList<>();
-
-    // Stain source
-    static {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("\t");
-        for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
-            for (int i = 3; i < passthrough.length; i++) {
-                stringBuilder.append((Integer) passthrough[i]);
-                stringBuilder.append(',');
-            }
-            lines.add(passthrough[0] + "\t" + passthrough[1] + "\t" + passthrough[2] + stringBuilder);
-            stringBuilder.delete(1, stringBuilder.length());
-        }
-
-        // 如果没有stainSource.txt则创建,并写入内置污点源
-        File stainSource = new File("." + File.separator + "stainSource.txt");
-        if (!stainSource.exists()) {
-            try {
-                stainSource.createNewFile();
-                FileUtils.writeLines("." + File.separator + "stainSource.txt", lines);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 
     // 是否开启debug选项
-    DebugOption debugOption = new DebugOption();
+    public static DebugOption debugOption = new DebugOption();
 
     public CoreMethodAdapter(final int api, final MethodVisitor mv, final String owner, int access,
                              String name, String desc, String signature, String[] exceptions) {
@@ -860,19 +831,23 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-        debugOption.setFilter("java/io/ByteArrayInputStream", "<init>", "([BII)V");
-        debugOption.filter(owner, name, desc);
-
+        DebugOption.filter(owner, name, desc);
         // 获取method的参数类型
         Type[] argTypes = getMethodType(opcode, owner, name, desc, itf);
         final Type returnType = Type.getReturnType(desc);
         final int retSize = returnType.getSize();
+        // 创建一个 printTaint ,使其能记录 owner name desc index
+        PrintTaint printTaint = new PrintTaint();
         Set<T> resultTaint;
         switch (opcode) {
             case Opcodes.INVOKESTATIC:
             case Opcodes.INVOKEVIRTUAL:
             case Opcodes.INVOKESPECIAL:
             case Opcodes.INVOKEINTERFACE:
+                printTaint.owner = owner;
+                printTaint.name = name;
+                printTaint.desc = desc;
+
                 final List<Set<T>> argTaint = new ArrayList<>(argTypes.length);
                 for (int i = 0; i < argTypes.length; i++) {
                     argTaint.add(null);
@@ -884,13 +859,15 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
 
                 if (name.equals("<init>")) {
                     resultTaint = argTaint.get(0);
+                    printTaint.stainIndex = argTaint.get(0);
                 } else {
                     resultTaint = new HashSet<>();
+                    printTaint.stainIndex = new HashSet<>();
                 }
 
                 // 黑名单匹配 污点源
-                lines = FileUtils.readLines(".\\stainSource.txt", String.valueOf(StandardCharsets.UTF_8));
-                for (String line : lines) {
+                Constant.lines = FileUtils.readLines(".\\stainSource.txt", String.valueOf(StandardCharsets.UTF_8));
+                for (String line : Constant.lines) {
                     // 按\t进行切割
                     String[] finalPassthrough = stringUtils.splitBySymbol(line, "\t");
                     // 如果符合我们的黑名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
@@ -898,9 +875,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                         String[] middle = stringUtils.splitBySymbol(finalPassthrough[3], ",");
                         for (int i = 0; i < middle.length; i++) {
                             resultTaint.addAll(argTaint.get((Integer) Integer.parseInt(middle[i])));
+                            printTaint.stainIndex.addAll(argTaint.get((Integer) Integer.parseInt(middle[i])));
                         }
-                        //System.out.println(finalPassthrough[0]+"  "+ finalPassthrough[1] );
-
                         break;
                     }
                 }
@@ -919,6 +895,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 }
 
                 if (retSize > 0) {
+                    Constant.currentPrintTaint.push(printTaint);
+
                     // 为什么返回值大于0就要将resultTaint压入操作数栈呢? 因为:为了让上层函数去污点分析
                     // 否则如果是没有返回值的话,那根本不用把 resultTaint 向上传递,说明此函数根本就是摆设
                     operandStack.push(resultTaint);
@@ -937,10 +915,15 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         //处理当return new String(evilCode)这种情况，构造方法返回值为retSize为0，但其实他可以污染 上层函数(所有方法参数出栈后的栈顶)
         if (retSize == 0 && operandStack.size() > 0 && resultTaint != null && resultTaint.size() > 0) {
             operandStack.get(0).addAll(resultTaint);
+
+            Constant.currentPrintTaint.push(printTaint);
         } else if (owner.equals("java/lang/String") && name.equals("<init>") && desc.equals("([B)V") && retSize == 0 && operandStack.size() > 0 && resultTaint != null) {
             // 解决 new String直接扔入函数中，会导致无法检测的问题.解决方案:自己造一个污点,用于传递
             resultTaint = operandStack.get(operandStack.size() - 1);
             operandStack.get(0).addAll(resultTaint);
+
+            printTaint.stainIndex = operandStack.get(operandStack.size() - 1);
+            Constant.currentPrintTaint.push(printTaint);
         }
         sanityCheck();
         debugOption.clearSet();
