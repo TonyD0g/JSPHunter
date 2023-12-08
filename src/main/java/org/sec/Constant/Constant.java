@@ -39,11 +39,21 @@ public class Constant {
     // method 名字对应 method 内容
     public static final Map<MethodReference.Handle, MethodReference> methodMap = new HashMap<>();
 
+    // 记录所有的 stainSource
     public static List<String> lines = new ArrayList<>();
 
-    public static PrintTaint currentPrintTaint = new PrintTaint();
+    public static PrintTaint tempPrintTaint = new PrintTaint();
+
+    public static PrintTaint finallPrintTaint = new PrintTaint();
+
+    // 是否输出某个特定函数的反编译信息
+    public static boolean isPrintDecompileInfo = false;
+
+    // 记录当前方法是否被记录过,如果被记录过则为true
+    public static boolean isLock = true;
 
     static {
+        // debug 专用
         DebugOption.setFilter("java/lang/StringBuilder", "toString", "()Ljava/lang/String;");
     }
 }

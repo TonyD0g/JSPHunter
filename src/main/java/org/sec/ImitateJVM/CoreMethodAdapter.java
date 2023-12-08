@@ -895,7 +895,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 }
 
                 if (retSize > 0) {
-                    Constant.currentPrintTaint.push(printTaint);
+                    if (DebugOption.userDebug && Constant.isPrintDecompileInfo ) {
+                        Constant.tempPrintTaint.push(printTaint);
+                        printTaint.hasReturn = true;
+                    }
 
                     // 为什么返回值大于0就要将resultTaint压入操作数栈呢? 因为:为了让上层函数去污点分析
                     // 否则如果是没有返回值的话,那根本不用把 resultTaint 向上传递,说明此函数根本就是摆设
@@ -906,6 +909,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                         debugOption.setDebug(opcode);
                     }
                 }
+
+
                 break;
             default:
                 throw new IllegalStateException("unsupported opcode: " + opcode);
@@ -916,14 +921,14 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         if (retSize == 0 && operandStack.size() > 0 && resultTaint != null && resultTaint.size() > 0) {
             operandStack.get(0).addAll(resultTaint);
 
-            Constant.currentPrintTaint.push(printTaint);
+            //   Constant.currentPrintTaint.push(printTaint);
         } else if (owner.equals("java/lang/String") && name.equals("<init>") && desc.equals("([B)V") && retSize == 0 && operandStack.size() > 0 && resultTaint != null) {
             // 解决 new String直接扔入函数中，会导致无法检测的问题.解决方案:自己造一个污点,用于传递
             resultTaint = operandStack.get(operandStack.size() - 1);
             operandStack.get(0).addAll(resultTaint);
 
-            printTaint.stainIndex = operandStack.get(operandStack.size() - 1);
-            Constant.currentPrintTaint.push(printTaint);
+//            printTaint.stainIndex = operandStack.get(operandStack.size() - 1);
+//            Constant.currentPrintTaint.push(printTaint);
         }
         sanityCheck();
         debugOption.clearSet();
@@ -1117,6 +1122,30 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitEnd() {
+//        if (Constant.tempPrintTaint.PrintTaintStack.size() <= 0) {
+//            super.visitEnd();
+//            return;
+//        }
+//        if (Constant.tempPrintTaint.PrintTaintStack.size() == 1) {
+//            Constant.finallPrintTaint.push((PrintTaint) Constant.tempPrintTaint.PrintTaintStack.get(0));
+//            Constant.tempPrintTaint.clear();
+//            super.visitEnd();
+//            return;
+//        }
+//
+//        for (int index = 0; index < Constant.tempPrintTaint.PrintTaintStack.size() - 1; index++) {
+//            if (((PrintTaint) Constant.tempPrintTaint.PrintTaintStack.get(index)).hasReturn) {
+//                continue;
+//            } else if (index != 0) {
+//                Constant.finallPrintTaint.push((PrintTaint) Constant.tempPrintTaint.PrintTaintStack.get(index - 1));
+//            }
+//        }
+//        Constant.tempPrintTaint.clear();
+        if (DebugOption.userDebug && Constant.isPrintDecompileInfo && Constant.isLock && Constant.tempPrintTaint.PrintTaintStack.size() != 0) {
+            Constant.tempPrintTaint.printCurrentTaintStack("");
+            System.out.println("------------------------------------------");
+            Constant.isLock = false;
+        }
         super.visitEnd();
     }
 }

@@ -68,6 +68,8 @@ public class FindEvilDiscovery {
             //对method进行观察
             MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
             if (name.equals(this.methodToVisit.getName())) {
+                Constant.isPrintDecompileInfo =name.equals("_jspService") && descriptor.equals("(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V");
+
                 findEvilDataflowMethodVisitor = new FindEvilDataflowMethodVisitor(EvilDataflow, Opcodes.ASM5, access, descriptor, mv, this.name, name, signature, exceptions, classFileName, printEvilMessage, isDelete);
                 EvilDataflow.put(new MethodReference.Handle(this.name, name, descriptor), getReturnTaint());
                 return new JSRInlinerAdapter(findEvilDataflowMethodVisitor, access, name, descriptor, signature, exceptions);
@@ -84,7 +86,7 @@ public class FindEvilDiscovery {
         public void visitInnerClass(String name, String outerName, String innerName, int access) {
             //System.out.println("name is: "+name+" outName is: " + outerName + " Detected inner class:" + innerName);
             // TODO 解决 原生类会执行 updateClassQueue
-            if(!innerClassList.contains(name) && name.contains("org/apache/jsp/")){
+            if (!innerClassList.contains(name) && name.contains("org/apache/jsp/")) {
                 currentClassQueue.updateClassQueue(name);
                 innerClassList.add(name);
             }
@@ -266,9 +268,6 @@ public class FindEvilDiscovery {
                                     logger.info(msg);
                                     Constant.evilClass.add(classFileName);
                                     Constant.msgList.add(msg);
-                                    if (DebugOption.userDebug) {
-                                        Constant.currentPrintTaint.printCurrentTaintStack("ClassLoader.defineClass 或" + evilType);
-                                    }
                                 }
                             }
                         }
@@ -282,7 +281,7 @@ public class FindEvilDiscovery {
             // 下面的switch判断是要开始 处理污点断点分析结果 (上面分析完毕了,该进行输出结果了)
             switch (opcode) {
                 case Opcodes.INVOKEINTERFACE:
-                    voidType = InvokeInterface.analysis(owner, name, desc, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
+                    voidType = InvokeInterface.analysis(opcode, owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
                     break;
                 case Opcodes.INVOKEVIRTUAL:
                     InvokeVirtual invokeVirtual = new InvokeVirtual();
@@ -350,10 +349,7 @@ public class FindEvilDiscovery {
                                 int taintNum = (Integer) node;
                                 taints.add(taintNum);
                                 if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "ProcessBuilder,且外部可控", 1, this.isDelete);
-                                    if (DebugOption.userDebug) {
-                                        Constant.currentPrintTaint.printCurrentTaintStack("ProcessBuilder");
-                                    }
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + this.name + " ProcessBuilder,且外部可控", 1, this.isDelete);
                                 }
                             }
                         }
@@ -385,10 +381,7 @@ public class FindEvilDiscovery {
                                     taints.add(taintNum);
                                 }
                                 if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "defineClass或URLClassLoaderInit或ObjectInputStreamResolveClass,且受外部控制", 1, this.isDelete);
-                                    if (DebugOption.userDebug) {
-                                        Constant.currentPrintTaint.printCurrentTaintStack("ClassLoader的defineClass");
-                                    }
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + this.name + " defineClass或URLClassLoaderInit或ObjectInputStreamResolveClass,且受外部控制", 1, this.isDelete);
                                 }
                             }
                         }
@@ -413,12 +406,9 @@ public class FindEvilDiscovery {
                             taints.add(taintNum);
                             if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
                                 if (isMethodUtilInvoke) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "MethodUtil.invoke", 1, this.isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + this.name + " MethodUtil.invoke", 1, this.isDelete);
                                 } else {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, this.isDelete);
-                                }
-                                if (DebugOption.userDebug) {
-                                    Constant.currentPrintTaint.printCurrentTaintStack("MethodUtil 或 JspRuntimeLibrary");
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + this.name + " JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, this.isDelete);
                                 }
                                 break;
                             }

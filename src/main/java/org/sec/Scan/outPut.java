@@ -17,9 +17,9 @@ public class outPut {
             printEvilMessage.add(1);
             String msg;
             if (anomalyDegree == 1) {
-                msg = "[+] " + "(检测结果: 恶意) " + Constant.classNameToJspName.get(classFileName) + "   使用了" + evilType + "，该文件为webshell";
+                msg = "[+] " + "(检测结果: 恶意) " + Constant.classNameToJspName.get(classFileName) + " " + evilType + "，该文件为webshell";
             } else {
-                msg = "[+] " + "(检测结果: 可疑) " + Constant.classNameToJspName.get(classFileName) + "   使用了" + evilType + "，建议查看此文件进一步判断!";
+                msg = "[+] " + "(检测结果: 可疑) " + Constant.classNameToJspName.get(classFileName) + " " + evilType + "，建议查看此文件进一步判断!";
             }
             logger.info(msg);
             if (org.sec.Scan.JVMMethodScan.InvokeVirtual.getInfoFlag) {
@@ -35,10 +35,6 @@ public class outPut {
             }
             Constant.evilClass.add(classFileName);
             Constant.msgList.add(msg);
-
-            if (DebugOption.userDebug) {
-                Constant.currentPrintTaint.printCurrentTaintStack("ClassLoader.defineClass 或" + evilType);
-            }
         }
     }
 

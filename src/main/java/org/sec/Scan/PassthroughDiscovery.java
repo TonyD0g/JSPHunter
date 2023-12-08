@@ -308,10 +308,10 @@ public class PassthroughDiscovery {
             }
             if (opcode == Opcodes.AASTORE) {
                 Set taintList = operandStack.get(0);
-                super.visitInsn(opcode);
                 if (!taintList.isEmpty()) {
                     operandStack.get(0).addAll(taintList);
                 }
+                super.visitInsn(opcode);
                 return;
             }
             super.visitInsn(opcode);

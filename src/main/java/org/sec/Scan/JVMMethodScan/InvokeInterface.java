@@ -14,7 +14,7 @@ import java.util.Set;
 //调用接口方法
 public class InvokeInterface {
 
-    public static String analysis(String owner, String name, String desc, List<Set<Integer>> argTaint, Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, boolean isDelete) {
+    public static String analysis(int opcode, String owner, String name, String desc, boolean itf, FindEvilDiscovery.FindEvilDataflowMethodVisitor findEvilDataflowMethodVisitor, List<Set<Integer>> argTaint, Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, boolean isDelete) {
 
         boolean scriptEngineEval = owner.equals("javax/script/ScriptEngine") && name.equals("eval");
         boolean scriptEnginePut = owner.equals("javax/script/ScriptEngine") && name.equals("put");
@@ -22,18 +22,18 @@ public class InvokeInterface {
 
         if (scriptEngineEval) {
             Set<Integer> taintList = argTaint.get(1);
-            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "的 " + findEvilDataflowMethodVisitor.name + " ScriptEngine", 1, isDelete);
             return "success";
         }
 
         if (scriptEnginePut) {
             Set<Integer> taintList = argTaint.get(2);
-            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "ScriptEngine", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "的 " + findEvilDataflowMethodVisitor.name + " ScriptEngine", 1, isDelete);
             return "success";
         }
         if (isMethodAccessorInvoke) {
             Set<Integer> taintList = argTaint.get(0);
-            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "MethodAccessor.Invoke", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "的 " + findEvilDataflowMethodVisitor.name + " MethodAccessor.Invoke", 1, isDelete);
             return "success";
         }
         return "";

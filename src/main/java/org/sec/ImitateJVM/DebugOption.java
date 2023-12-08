@@ -55,6 +55,11 @@ public class DebugOption {
      * 执行过滤
      */
     public static void filter(String owner1, String name1, String desc1) {
+        if (desc.isEmpty()) {
+            if (owner.equals(owner1) && name.equals(name1)) {
+                printDebug();
+            }
+        }
         if (owner.equals(owner1) && name.equals(name1) && desc.equals(desc1)) {
             printDebug();
         }

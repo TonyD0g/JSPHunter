@@ -6,11 +6,8 @@ import org.sec.Constant.Constant;
 import org.sec.ImitateJVM.DebugOption;
 import org.sec.ImitateJVM.currentClassQueue;
 import org.sec.Scan.FindEvilDiscovery;
-import org.sec.Scan.getAllString;
 import org.sec.Scan.outPut;
-import org.sec.Utils.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -36,6 +33,7 @@ public class InvokeVirtual {
         boolean inputStream = owner.equals("java/io/InputStream") && name.equals("read") && desc.equals("([BII)I");
         boolean methodInvoke = owner.equals("java/lang/reflect/Method") && name.equals("invoke") && desc.equals("(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
         boolean ProcessBuilderCommand = owner.equals("java/lang/ProcessBuilder") && name.equals("command") && desc.equals("([Ljava/lang/String;)Ljava/lang/ProcessBuilder;");
+        boolean ProcessBuilderStart = owner.equals("java/lang/ProcessBuilder") && name.equals("start") && desc.equals("()Ljava/lang/Process;");
         boolean newInstance = (owner.equals("java/lang/reflect/Constructor") && name.equals("newInstance") && desc.equals("([Ljava/lang/Object;)Ljava/lang/Object;")) || (owner.equals("java/lang/Class") && name.equals("newInstance") && desc.equals("()Ljava/lang/Object;"));
         boolean JdbcRowSetImpl = owner.equals("com/sun/rowset/JdbcRowSetImpl") && name.equals("setDataSourceName") && desc.equals("(Ljava/lang/String;)V");
         boolean URLClassloader = (owner.equals("java/net/URLClassLoader") && name.equals("loadClass") && desc.equals("(Ljava/lang/String;)Ljava/lang/Class;"));
@@ -49,7 +47,7 @@ public class InvokeVirtual {
 
         if (readObject) {
             if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "readObject,可能为重写ObjectInputStream.resolveClass型webshell", 2, isDelete);
+                outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " readObject,可能为重写ObjectInputStream.resolveClass型webshell", 2, isDelete);
             }
             return "void";
         }
@@ -70,9 +68,9 @@ public class InvokeVirtual {
                         }
 
                         if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "ExpressionFactory,且参数外部可控", 1, isDelete);
+                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " ExpressionFactory,且参数外部可控", 1, isDelete);
                             if (DebugOption.userDebug) {
-                                Constant.currentPrintTaint.printCurrentTaintStack("ClassLoader的defineClass ");
+                                Constant.finallPrintTaint.printCurrentTaintStack("ClassLoader的defineClass ");
                             }
                         }
                     }
@@ -110,13 +108,13 @@ public class InvokeVirtual {
                     //因为前面各种方法传递、运算 字符串才会在这里得到完整得结果
                     if (taintList.contains("java.lang.ProcessBuilder") || taintList.contains("java.lang.Runtime")) {
                         //这种情况就是企图反射调用java.lang.ProcessBuilder或者java.lang.Runtime。直接调用命令执行方法可能是程序的正常业务功能，但反射调用命令执行方法基本就是攻击者行为。
-                        outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "ProcessBuilder 或 Runtime,且参数外部可控", 1, isDelete);
+                        outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " ProcessBuilder 或 Runtime,且参数外部可控", 1, isDelete);
                     }
                     k++;
                 }
             }
             if (findEvilDataflowMethodVisitor.operandStack.get(k).contains("java.lang.ProcessBuilder") || findEvilDataflowMethodVisitor.operandStack.get(k).contains("java.lang.Runtime")) {
-                outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "ProcessBuilder 或 Runtime,且参数外部可控", 1, isDelete);
+                outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " ProcessBuilder 或 Runtime,且参数外部可控", 1, isDelete);
             }
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
             return "void";
@@ -174,7 +172,7 @@ public class InvokeVirtual {
                 return "void";
             }
         }
-        if (TransformerFactory || exec || ProcessBuilderCommand || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImplGetter || TemplatesImplNewTransformer || ELProcessor || readObject || methodInvoke || expr) {
+        if (TransformerFactory || exec || ProcessBuilderCommand || ProcessBuilderStart || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImplGetter || TemplatesImplNewTransformer || ELProcessor || readObject || methodInvoke || expr) {
             if (!findEvilDataflowMethodVisitor.operandStack.get(0).isEmpty()) {
                 Set<Integer> taints = new HashSet<>();
                 int taintNum;
@@ -186,38 +184,35 @@ public class InvokeVirtual {
                         }
                         try{
                             if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                                if (DebugOption.userDebug) {
-                                    Constant.currentPrintTaint.printCurrentTaintStack(" ");
-                                }
                                 if (exec) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "Runtime.exec,且参数外部可控", 1, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " Runtime.exec,且参数外部可控", 1, isDelete);
                                     break;
-                                } else if (ProcessBuilderCommand) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "ProcessBuilder,且参数外部可控", 1, isDelete);
+                                } else if (ProcessBuilderCommand || ProcessBuilderStart) {
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " ProcessBuilder,且参数外部可控", 1, isDelete);
                                     break;
                                 } else if (newInstance) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "newInstance,且参数外部可控", 2, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " newInstance,且参数外部可控", 2, isDelete);
                                     break;
                                 } else if (JdbcRowSetImpl) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "JdbcRowSetImpl.setDataSourceName,且参数外部可控", 2, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " JdbcRowSetImpl.setDataSourceName,且参数外部可控", 2, isDelete);
                                     break;
                                 } else if (URLClassloader) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "URLClassloader.loadClass,且参数外部可控", 2, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " URLClassloader.loadClass,且参数外部可控", 2, isDelete);
                                     break;
                                 } else if (ELProcessor) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "ELProcessor.eval,且参数外部可控", 1, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " ELProcessor.eval,且参数外部可控", 1, isDelete);
                                     break;
                                 } else if (methodInvoke) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "methodInvoke,且参数外部可控", 1, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " methodInvoke,且参数外部可控", 1, isDelete);
                                     break;
                                 } else if (expr) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "Expression.getValue,且参数外部可控", 2, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " Expression.getValue,且参数外部可控", 2, isDelete);
                                     break;
                                 }else if(TransformerFactory){
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "TransformerFactory,且参数外部可控", 1, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " TransformerFactory,且参数外部可控", 1, isDelete);
                                     break;
                                 }else if(TemplatesImplGetter|| TemplatesImplNewTransformer){
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "TemplatesImpl.getOutputProperties 或 TemplatesImpl.newTransformer,且参数外部可控", 2, isDelete);
+                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " TemplatesImpl.getOutputProperties 或 TemplatesImpl.newTransformer,且参数外部可控", 2, isDelete);
                                     break;
                                 }
                             }
@@ -297,7 +292,7 @@ public class InvokeVirtual {
                         for (Object tmpTaint : tmpTaints) {
                             //表示入参可以污染到defineClass方法的参数
                             if (tmpTaint instanceof Integer) {
-                                outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "defineClass,且参数外部可控", 1, isDelete);
+                                outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " defineClass,且参数外部可控", 1, isDelete);
                                 numbTrains.add((Integer) tmpTaint);
                             }
                         }
