@@ -1143,7 +1143,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
 //        Constant.tempPrintTaint.clear();
         if (DebugOption.userDebug && Constant.isPrintDecompileInfo && Constant.isLock && Constant.tempPrintTaint.PrintTaintStack.size() != 0) {
             Constant.tempPrintTaint.printCurrentTaintStack("");
-            System.out.println("------------------------------------------");
             Constant.isLock = false;
         }
         super.visitEnd();

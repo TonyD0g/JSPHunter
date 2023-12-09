@@ -2,7 +2,7 @@ package org.sec.Utils;
 
 import org.apache.log4j.Logger;
 
-import java.io.File;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
@@ -198,6 +198,36 @@ public class stringUtils {
         // 比如: filePath = "/demo/dao/impl/SQLIDaoImpl.class",filter为 "". 则输出结果为 SQLIDaoImpl.class
         File file = new File(filePath);
         return file.getName().replace(filter, "");
+    }
+    /** 从指定行进行删除  : 指定从某一行开始，后面全部置空。比如我输入的是45行，所以46行之后全部清除 ,保留前45行*/
+    public static void deleteLinesAfter(String filePath, int specifiedLine) {
+        try {
+            // 读取原始文件内容
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
+            StringBuilder fileContent = new StringBuilder();
+            String line;
+
+            // 读取并保留指定行数之前的内容
+            for (int i = 1; (line = bufferedReader.readLine()) != null && i <= specifiedLine; i++) {
+                fileContent.append(line).append(System.lineSeparator());
+            }
+            bufferedReader.close();
+
+            // 写入文件
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath));
+            bufferedWriter.write(fileContent.toString());
+            bufferedWriter.close();
+
+            System.out.println("Lines after line " + specifiedLine + " have been deleted.");
+
+        } catch (IOException e) {
+            logger.error("An error occurred", e);
+        }
+    }
+    /** 根据文件名删除文件 */
+    public static boolean deleteByFileName(String filePath){
+        File fileToDelete = new File(filePath);
+        return fileToDelete.delete();
     }
 }
 

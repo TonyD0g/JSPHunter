@@ -31,18 +31,20 @@ public class PrintTaint<T> {
 
     // 输出当前的利用链
     public void printCurrentTaintStack(String stainType) {
-        String tempString;
-        System.out.printf("[ %s ] 完整的利用链如下:\n----------------------------------------------------------------\n", stainType);
-        for (int index = 0; index < PrintTaintStack.size() - 1; index++) {
-            tempString = PrintTaintStack.get(index).stainIndex.toString();
-            System.out.printf("[ owner: %s , name: %s , desc: %s , stainIndex: %s ]\n",
-                    PrintTaintStack.get(index).owner,
-                    PrintTaintStack.get(index).name,
-                    PrintTaintStack.get(index).desc,
-                    tempString
-            );
+        if(Constant.tempPrintTaint.PrintTaintStack.size() - 1 > 0){
+            String tempString;
+            System.out.printf("[ %s ] 完整的利用链如下:\n----------------------------------------------------------------\n", stainType);
+            for (int index = 0; index < Constant.tempPrintTaint.PrintTaintStack.size() - 1; index++) {
+                tempString = PrintTaintStack.get(index).stainIndex.toString();
+                System.out.printf("[ owner: %s , name: %s , desc: %s , stainIndex: %s ]\n",
+                        PrintTaintStack.get(index).owner,
+                        PrintTaintStack.get(index).name,
+                        PrintTaintStack.get(index).desc,
+                        tempString
+                );
+            }
+            System.out.println("----------------------------------------------------------------\n\n\n");
+            Constant.tempPrintTaint.clear();
         }
-        System.out.println("----------------------------------------------------------------\n\n\n");
-        Constant.tempPrintTaint.clear();
     }
 }
