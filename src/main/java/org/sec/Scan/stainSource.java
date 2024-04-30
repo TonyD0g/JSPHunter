@@ -1,7 +1,6 @@
 package org.sec.Scan;
 
-import org.sec.Constant.Constant;
-import org.sec.ImitateJVM.CoreMethodAdapter;
+import org.sec.ImitateJVM.Constant;
 import org.sec.Utils.FileUtils;
 
 import java.io.File;
@@ -110,7 +109,7 @@ public class stainSource {
         for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
             Constant.lines.add(passthrough[0] + "\t" + passthrough[1] + "\t" + passthrough[2] + "\t" + passthrough[3]);
         }
-        FileUtils.writeLines("." + File.separator + "stainSource.txt", Constant.lines);
+        FileUtils.writeLines("." + File.separator + "stainSource.txt", Constant.lines,true);
     }
 
     public static void getStainSource(Object[][] PASSTHROUGH_DATAFLOW) {
@@ -130,11 +129,10 @@ public class stainSource {
         if (!stainSource.exists()) {
             try {
                 stainSource.createNewFile();
-                // FileUtils.writeLines("." + File.separator + "stainSource.txt", CoreMethodAdapter.lines);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-
+        FileUtils.writeLines("." + File.separator + "stainSource.txt", Constant.lines,false);
     }
 }

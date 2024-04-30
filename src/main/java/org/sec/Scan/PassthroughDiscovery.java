@@ -3,7 +3,7 @@ package org.sec.Scan;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
-import org.sec.Constant.Constant;
+import org.sec.ImitateJVM.Constant;
 import org.sec.Data.DataFactory;
 import org.sec.Data.DataLoader;
 import org.sec.Data.MethodReference;

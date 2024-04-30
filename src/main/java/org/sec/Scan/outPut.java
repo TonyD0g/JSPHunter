@@ -1,8 +1,7 @@
 package org.sec.Scan;
 
 import org.apache.log4j.Logger;
-import org.sec.Constant.Constant;
-import org.sec.ImitateJVM.DebugOption;
+import org.sec.ImitateJVM.Constant;
 import org.sec.Utils.FileUtils;
 
 import java.io.File;
@@ -18,8 +17,10 @@ public class outPut {
             String msg;
             if (anomalyDegree == 1) {
                 msg = "[+] " + "(检测结果: 恶意) " + Constant.classNameToJspName.get(classFileName) + " " + evilType + "，该文件为webshell";
+                Constant.maliceNum++;
             } else {
                 msg = "[+] " + "(检测结果: 可疑) " + Constant.classNameToJspName.get(classFileName) + " " + evilType + "，建议查看此文件进一步判断!";
+                Constant.suspiciousNum++;
             }
             logger.info(msg);
             if (org.sec.Scan.JVMMethodScan.InvokeVirtual.getInfoFlag) {

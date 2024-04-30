@@ -3,7 +3,6 @@ package org.sec.ImitateJVM;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
-import org.sec.Constant.Constant;
 import org.sec.Scan.getAllString;
 import org.sec.Utils.FileUtils;
 import org.sec.Utils.stringUtils;
@@ -17,6 +16,9 @@ import java.util.*;
  */
 @SuppressWarnings("all")
 public class CoreMethodAdapter<T> extends MethodVisitor {
+    public static boolean isStopRecording = false;
+    boolean isExpChains = false;    // 是否达到输出利用链的标准
+
     // 操作数栈的大小和totalSizeOfArg的大小是否相等
     public static boolean isSizeEqual = false;
     private static final Logger logger = Logger.getLogger(CoreMethodAdapter.class);
@@ -88,7 +90,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     private void sanityCheck() {
         if (analyzerAdapter.stack != null && operandStack.size() != analyzerAdapter.stack.size()) {
-            throw new IllegalStateException("bad stack size");
+            throw new IllegalStateException("[-] 堆栈大小错误，调试出现错误的文件为 : " + analyzerAdapter.locals.get(0));
         }
     }
 
@@ -748,6 +750,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         }
 
         // 1.处理非正常情况
+        boolean isNormal = false;
         int counter = 0;
         if ((coreMethodAdapter.operandStack.size() <= totalSizeOfArg)) {
             try {
@@ -787,18 +790,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     list2.add(tmpString);
                     stack.set(coreMethodAdapter.mv, list2);
                 } else {
-                    //第二种情况: operandStack.size() == totalSizeOfArg,根据每个参数的大小进行相应的弹栈
-                    for (int i = 0; i < argTypes.length; i++) {
-                        Type argType = argTypes[i];
-                        if (argType.getSize() > 0) {
-                            // 弹栈的目的是模拟 执行方法
-                            for (int j = 0; j < argType.getSize() - 1; j++) {
-                                operandStack.pop();
-                            }
-                            // 记录方法参数
-                            argTaint.set(argTypes.length - 1 - i, operandStack.pop());
-                        }
-                    }
+                    //第二种情况: operandStack.size() == totalSizeOfArg,根据每个参数的大小进行相应的弹栈,属于正常情况
+                    isNormal = true;
                     isSizeEqual = true;
                 }
             } catch (ClassNotFoundException e) {
@@ -809,11 +802,12 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 throw new RuntimeException(e);
             }
         } else {
-            // 2.处理正常情况
+            isNormal = true; // 2.处理正常情况
+        }
+        if(isNormal){
             for (int i = 0; i < argTypes.length; i++) {
                 Type argType = argTypes[i];
                 if (argType.getSize() > 0) {
-
                     // 弹栈的目的是模拟 执行方法
                     for (int j = 0; j < argType.getSize() - 1; j++) {
                         operandStack.pop();
@@ -823,7 +817,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 }
             }
         }
-
     }
 
     /**
@@ -870,8 +863,9 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 for (String line : Constant.lines) {
                     // 按\t进行切割
                     String[] finalPassthrough = stringUtils.splitBySymbol(line, "\t");
-                    // 如果符合我们的黑名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
+                    // 如果符合我们名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
                     if (finalPassthrough[0].equals(owner) && finalPassthrough[1].equals(name) && (finalPassthrough[2].equals(desc) || finalPassthrough[2].equals("*"))) {
+                        isExpChains = true;
                         String[] middle = stringUtils.splitBySymbol(finalPassthrough[3], ",");
                         for (int i = 0; i < middle.length; i++) {
                             resultTaint.addAll(argTaint.get((Integer) Integer.parseInt(middle[i])));
@@ -894,12 +888,16 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     }
                 }
 
-                if (retSize > 0) {
-                    if (DebugOption.userDebug && Constant.isPrintDecompileInfo ) {
-                        Constant.tempPrintTaint.push(printTaint);
-                        printTaint.hasReturn = true;
-                    }
+                // 解决思路: 利用 stainSource中的内置源,如果printTaint存在于其中，则开始记录，否则不记录.不记录的标准时如果ldc为连续的：\r\n</body>\r\n</html> 且 javax/servlet/jsp/JspWriter.write(Ljava/lang/String;)V时 ,则 isExpChains = false
+                if (isStopRecording && (printTaint.owner.equals("javax/servlet/jsp/JspWriter") && printTaint.name.equals("write") && printTaint.desc.equals("(Ljava/lang/String;)V"))) {
+                    isExpChains = false;
+                }
 
+                if (DebugOption.userDebug && Constant.isPrintDecompileInfo && isExpChains) {
+                    Constant.tempPrintTaint.push(printTaint);
+                }
+
+                if (retSize > 0) {
                     // 为什么返回值大于0就要将resultTaint压入操作数栈呢? 因为:为了让上层函数去污点分析
                     // 否则如果是没有返回值的话,那根本不用把 resultTaint 向上传递,说明此函数根本就是摆设
                     operandStack.push(resultTaint);
@@ -909,8 +907,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                         debugOption.setDebug(opcode);
                     }
                 }
-
-
                 break;
             default:
                 throw new IllegalStateException("unsupported opcode: " + opcode);
@@ -920,15 +916,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         //处理当return new String(evilCode)这种情况，构造方法返回值为retSize为0，但其实他可以污染 上层函数(所有方法参数出栈后的栈顶)
         if (retSize == 0 && operandStack.size() > 0 && resultTaint != null && resultTaint.size() > 0) {
             operandStack.get(0).addAll(resultTaint);
-
-            //   Constant.currentPrintTaint.push(printTaint);
         } else if (owner.equals("java/lang/String") && name.equals("<init>") && desc.equals("([B)V") && retSize == 0 && operandStack.size() > 0 && resultTaint != null) {
             // 解决 new String直接扔入函数中，会导致无法检测的问题.解决方案:自己造一个污点,用于传递
             resultTaint = operandStack.get(operandStack.size() - 1);
             operandStack.get(0).addAll(resultTaint);
-
-//            printTaint.stainIndex = operandStack.get(operandStack.size() - 1);
-//            Constant.currentPrintTaint.push(printTaint);
         }
         sanityCheck();
         debugOption.clearSet();
@@ -1039,8 +1030,10 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         } else {
             operandStack.push();
             // 可能是String类型,遍历输出String类型,密码可能就存在里面
-            String tmpStr = cst.toString();
-            getAllString.stringsList.add(tmpStr);
+            String cstToString = cst.toString();
+            getAllString.stringsList.add(cstToString);
+
+            isStopRecording = cstToString.equals("\r\n</body>\r\n</html>") ? true : false;
         }
         super.visitLdcInsn(cst);
         sanityCheck();
@@ -1122,25 +1115,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitEnd() {
-//        if (Constant.tempPrintTaint.PrintTaintStack.size() <= 0) {
-//            super.visitEnd();
-//            return;
-//        }
-//        if (Constant.tempPrintTaint.PrintTaintStack.size() == 1) {
-//            Constant.finallPrintTaint.push((PrintTaint) Constant.tempPrintTaint.PrintTaintStack.get(0));
-//            Constant.tempPrintTaint.clear();
-//            super.visitEnd();
-//            return;
-//        }
-//
-//        for (int index = 0; index < Constant.tempPrintTaint.PrintTaintStack.size() - 1; index++) {
-//            if (((PrintTaint) Constant.tempPrintTaint.PrintTaintStack.get(index)).hasReturn) {
-//                continue;
-//            } else if (index != 0) {
-//                Constant.finallPrintTaint.push((PrintTaint) Constant.tempPrintTaint.PrintTaintStack.get(index - 1));
-//            }
-//        }
-//        Constant.tempPrintTaint.clear();
         if (DebugOption.userDebug && Constant.isPrintDecompileInfo && Constant.isLock && Constant.tempPrintTaint.PrintTaintStack.size() != 0) {
             Constant.tempPrintTaint.printCurrentTaintStack("");
             Constant.isLock = false;

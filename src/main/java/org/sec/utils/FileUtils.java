@@ -209,7 +209,7 @@ public class FileUtils {
     /**
      * 将多行写到文件 (写入)
      */
-    public static void writeLines(String filepath, List<String> lines) {
+    public static void writeLines(String filepath, List<String> lines, boolean append) {
         if (lines == null || lines.isEmpty()) return;
 
         File file = new File(filepath);
@@ -221,7 +221,7 @@ public class FileUtils {
         BufferedWriter bufferedWriter = null;
 
         try {
-            out = Files.newOutputStream(file.toPath());
+            out = new FileOutputStream(file, append); // 使用追加模式
             writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
             bufferedWriter = new BufferedWriter(writer);
 

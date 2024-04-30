@@ -1,7 +1,5 @@
 package org.sec.ImitateJVM;
 
-import org.sec.Constant.Constant;
-
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -19,8 +17,6 @@ public class PrintTaint<T> {
 
     public Set<T> stainIndex;
 
-    public boolean hasReturn = false;
-
     public void push(PrintTaint t) {
         PrintTaintStack.add(t);
     }
@@ -34,7 +30,7 @@ public class PrintTaint<T> {
         if(Constant.tempPrintTaint.PrintTaintStack.size() - 1 > 0){
             String tempString;
             System.out.printf("[ %s ] 完整的利用链如下:\n----------------------------------------------------------------\n", stainType);
-            for (int index = 0; index < Constant.tempPrintTaint.PrintTaintStack.size() - 1; index++) {
+            for (int index = 0; index <= Constant.tempPrintTaint.PrintTaintStack.size() - 1; index++) {
                 tempString = PrintTaintStack.get(index).stainIndex.toString();
                 System.out.printf("[ owner: %s , name: %s , desc: %s , stainIndex: %s ]\n",
                         PrintTaintStack.get(index).owner,

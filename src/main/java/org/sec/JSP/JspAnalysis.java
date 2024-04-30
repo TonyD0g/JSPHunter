@@ -2,7 +2,7 @@ package org.sec.JSP;
 
 import org.apache.jasper.JspC;
 import org.apache.log4j.Logger;
-import org.sec.Constant.Constant;
+import org.sec.ImitateJVM.Constant;
 
 import java.io.File;
 import java.util.ArrayList;

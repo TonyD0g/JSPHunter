@@ -3,13 +3,14 @@ package org.sec.Scan;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.JSRInlinerAdapter;
-import org.sec.Constant.Constant;
+import org.sec.ImitateJVM.Constant;
 import org.sec.Data.MethodReference;
 import org.sec.ImitateJVM.ChangeAsmVar;
 import org.sec.ImitateJVM.CoreMethodAdapter;
-import org.sec.ImitateJVM.DebugOption;
 import org.sec.ImitateJVM.currentClassQueue;
 import org.sec.Scan.JVMMethodScan.InvokeInterface;
+import org.sec.Scan.JVMMethodScan.InvokeSpecial;
+import org.sec.Scan.JVMMethodScan.InvokeStatic;
 import org.sec.Scan.JVMMethodScan.InvokeVirtual;
 
 import java.lang.reflect.Field;
@@ -22,11 +23,7 @@ public class FindEvilDiscovery {
     private static final Logger logger = Logger.getLogger(FindEvilDiscovery.class);
     public static ArrayList<String> innerClassList = new ArrayList<>();
 
-    public void discover(boolean delete) {
-        findEvilDataflow(delete);
-    }
-
-    private void findEvilDataflow(boolean delete) {
+    public void findEvilDataflow(boolean delete) {
         currentClassQueue.initClassQueue("", "_jspService"); // test
         final Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow = new HashMap<>();
         for (MethodReference.Handle methodToVisit : Constant.sortedMethodCalls) {
@@ -68,7 +65,7 @@ public class FindEvilDiscovery {
             //对method进行观察
             MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
             if (name.equals(this.methodToVisit.getName())) {
-                Constant.isPrintDecompileInfo =name.equals("_jspService") && descriptor.equals("(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V");
+                Constant.isPrintDecompileInfo = name.equals("_jspService") && descriptor.equals("(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V");
 
                 findEvilDataflowMethodVisitor = new FindEvilDataflowMethodVisitor(EvilDataflow, Opcodes.ASM5, access, descriptor, mv, this.name, name, signature, exceptions, classFileName, printEvilMessage, isDelete);
                 EvilDataflow.put(new MethodReference.Handle(this.name, name, descriptor), getReturnTaint());
@@ -148,6 +145,10 @@ public class FindEvilDiscovery {
                 localIndex += argType.getSize();
                 argIndex += 1;
             }
+        }
+
+        public void visitMethodInsnForSuper(int opcode, String owner, String name, String desc, boolean itf){
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
         }
 
         /**
@@ -276,156 +277,26 @@ public class FindEvilDiscovery {
                 default:
                     throw new IllegalStateException("Unexpected value: " + opcode);
             }
-            String voidType = "";
 
             // 下面的switch判断是要开始 处理污点断点分析结果 (上面分析完毕了,该进行输出结果了)
+            boolean isSuccessExec = false;
             switch (opcode) {
                 case Opcodes.INVOKEINTERFACE:
-                    voidType = InvokeInterface.analysis(opcode, owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
+                    InvokeInterface.analysis(owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
                     break;
                 case Opcodes.INVOKEVIRTUAL:
-                    InvokeVirtual invokeVirtual = new InvokeVirtual();
-                    voidType = invokeVirtual.analysis(opcode, owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
+                    isSuccessExec = InvokeVirtual.analysis(opcode, owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
+                    break;
+                case Opcodes.INVOKESPECIAL:
+                    isSuccessExec = InvokeSpecial.analysis(opcode, owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
+                    break;
+                case Opcodes.INVOKESTATIC:
+                    isSuccessExec = InvokeStatic.analysis(opcode, owner, name, desc, itf, this, argTaint, printEvilMessage, classFileName, toEvilTaint, this.isDelete);
                     break;
             }
-            if (Objects.equals(voidType, "void")) {
+            if (isSuccessExec) {
                 return;
             }
-            if (opcode == Opcodes.INVOKESPECIAL) {
-                //除了ProcessBuilder,也都是做污点字符串传递的处理
-                boolean processBuilderInit = owner.equals("java/lang/ProcessBuilder") && name.equals("<init>");
-                boolean stringByteInit = owner.equals("java/lang/String") && name.equals("<init>") && (desc.equals("([B)V") || desc.equals("([BLjava/lang/String;)V"));
-                boolean stringInit = owner.equals("java/lang/String") && name.equals("<init>");
-                boolean stringBuilderInit = owner.equals("java/lang/StringBuilder") && name.equals("<init>") && desc.equals("(Ljava/lang/String;)V");
-                boolean defineClass = owner.equals("java/lang/ClassLoader") && name.equals("defineClass");
-                boolean URLClassLoaderInit = owner.equals("java/net/URLClassLoader") && name.equals("<init>") && desc.equals("([Ljava/net/URL;)V");
-                boolean ObjectInputStreamResolveClass = owner.equals("java/io/ObjectInputStream") && name.equals("resolveClass") && desc.equals("(Ljava/io/ObjectStreamClass;)Ljava/lang/Class;");
-
-                if (stringByteInit) {
-                    Set taintList = operandStack.get(0);
-                    for (Object taint : operandStack.get(0)) {
-                        //获取Opcodes.BIPUSH存放进来的byte数组然后还原原貌，主应对new String(byte[])这种情况，把byte[]还原成String进行污点传递
-                        if (taint instanceof ArrayList) {
-                            int len = ((ArrayList<?>) taint).size();
-                            byte[] tmp = new byte[len];
-                            for (int i = 0; i < len; i++) {
-                                tmp[i] = (byte) (int) (((ArrayList<? extends Integer>) taint).get(i));
-                            }
-                            super.visitMethodInsn(opcode, owner, name, desc, itf);
-                            operandStack.get(0).add(new String(tmp));
-                            return;
-                        }
-                        //如果不包含arrayList的byte数组，那么就正常传递污点
-                        super.visitMethodInsn(opcode, owner, name, desc, itf);
-                        if (!CoreMethodAdapter.isSizeEqual) {
-                            operandStack.get(0).addAll(taintList);
-                        }
-                        return;
-                    }
-                }
-                if (stringInit) {
-                    //传递String对象初始化参数中的所有的污点
-                    int k = 0;
-                    Set listAll = new HashSet();
-                    for (Type argType : Type.getArgumentTypes(desc)) {
-                        int size = argType.getSize();
-                        while (size-- > 0) {
-                            Set taintList = operandStack.get(k);
-                            if (!taintList.isEmpty()) {
-                                listAll.addAll(taintList);
-                            }
-                            k++;
-                        }
-                    }
-                    super.visitMethodInsn(opcode, owner, name, desc, itf);
-                    operandStack.get(0).addAll(listAll);
-                    return;
-                }
-                if (processBuilderInit) {
-                    if (!operandStack.get(0).isEmpty()) {
-                        Set<Integer> taints = new HashSet<>();
-                        for (Object node : operandStack.get(0)) {
-                            if (node instanceof Integer) {
-                                int taintNum = (Integer) node;
-                                taints.add(taintNum);
-                                if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + this.name + " ProcessBuilder,且外部可控", 1, this.isDelete);
-                                }
-                            }
-                        }
-                        toEvilTaint.put("ProcessBuilder", taints);
-                        super.visitMethodInsn(opcode, owner, name, desc, itf);
-                        return;
-                    }
-                }
-
-                if (stringBuilderInit && !operandStack.get(0).isEmpty()) {
-                    Set taintList = operandStack.get(0);
-                    super.visitMethodInsn(opcode, owner, name, desc, itf);
-                    operandStack.get(0).addAll(taintList);
-                    return;
-                }
-
-                //只要入参能流入到defineClass方法的第1号位置参数，1号参数是字节数组，就表示是个危险方法
-                if (defineClass || URLClassLoaderInit || ObjectInputStreamResolveClass) {
-                    Type[] argumentTypes = Type.getArgumentTypes(desc);
-                    //operandStack.get(argumentTypes.length-1)表示取出defineClass第1号位置的污点集合
-                    Set<Integer> taints = null;
-                    if (!operandStack.get(argumentTypes.length - 1).isEmpty()) {
-                        taints = new HashSet<>();
-                        int taintNum = 0;
-                        for (Object node : operandStack.get(argumentTypes.length - 1)) {
-                            if (node instanceof Integer || ((node instanceof String && ((String) node).contains("instruction")))) {
-                                if (node instanceof Integer) {
-                                    taintNum = (Integer) node;
-                                    taints.add(taintNum);
-                                }
-                                if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + this.name + " defineClass或URLClassLoaderInit或ObjectInputStreamResolveClass,且受外部控制", 1, this.isDelete);
-                                }
-                            }
-                        }
-                    }
-                    toEvilTaint.put("Behinder", taints);
-                    super.visitMethodInsn(opcode, owner, name, desc, itf);
-                    return;
-                }
-
-            }
-            if (opcode == Opcodes.INVOKESTATIC) {
-                boolean isValueOf = name.equals("valueOf") && desc.equals("(Ljava/lang/Object;)Ljava/lang/String;") && owner.equals("java/lang/String");
-                boolean isMethodUtilInvoke = owner.equals("sun/reflect/misc/MethodUtil") && name.equals("invoke") && desc.equals("(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
-                boolean JspRuntimeLibrary = owner.equals("org/apache/jasper/runtime/JspRuntimeLibrary") && name.equals("introspect") && desc.equals("(Ljava/lang/Object;Ljavax/servlet/ServletRequest;)V");
-                // boolean TransformerFactory = owner.equals("javax/xml/transform/TransformerFactory") && name.equals("newInstance") && desc.equals("()Ljavax/xml/transform/TransformerFactory;");
-
-                if ((isMethodUtilInvoke || JspRuntimeLibrary) && !operandStack.get(0).isEmpty()) {
-                    Set<Integer> taints = new HashSet<>();
-                    for (Object node : operandStack.get(0)) {
-                        if (node instanceof Integer) {
-                            int taintNum = (Integer) node;
-                            taints.add(taintNum);
-                            if (this.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                                if (isMethodUtilInvoke) {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + this.name + " MethodUtil.invoke", 1, this.isDelete);
-                                } else {
-                                    outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + this.name + " JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, this.isDelete);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    super.visitMethodInsn(opcode, owner, name, desc, itf);
-                    return;
-                }
-
-                if ((isValueOf) && !operandStack.get(0).isEmpty()) {
-                    Set taintList = operandStack.get(0);
-                    super.visitMethodInsn(opcode, owner, name, desc, itf);
-                    operandStack.get(0).addAll(taintList);
-                    return;
-                }
-            }
-
             super.visitMethodInsn(opcode, owner, name, desc, itf);
             //把调用其他方法获得的污点进行传递
             if (retSize > 0) {

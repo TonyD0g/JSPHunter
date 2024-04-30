@@ -2,13 +2,14 @@ package org.sec.Start;
 
 import com.beust.jcommander.JCommander;
 import org.apache.log4j.Logger;
-import org.sec.Constant.Constant;
+import org.sec.ImitateJVM.Constant;
 import org.sec.ImitateJVM.DebugOption;
 import org.sec.JSP.JspAnalysis;
 import org.sec.Scan.FindEvilDiscovery;
 import org.sec.Scan.JVMMethodScan.InvokeVirtual;
 import org.sec.Input.Command;
 import org.sec.Input.CommandChoice;
+import org.sec.Scan.stainSource;
 import org.sec.Utils.FileUtils;
 import org.sec.Utils.stringUtils;
 import org.sec.Scan.PassthroughDiscovery;
@@ -113,20 +114,21 @@ class CommandChoiceTest extends CommandChoice {
                     String webJspName = (webDir.substring(webDir.length() - 1).equals(File.separator) ? webDir : webDir + File.separator) + relativeJspName;
                     Constant.classNameToJspName.put(classFileName, webJspName);
                 }
+                stainSource.getStainSource(stainSource.PASSTHROUGH_DATAFLOW);
 
                 // 对方法进行dfs和逆排序
                 PassthroughDiscovery passthroughDiscovery = new PassthroughDiscovery();
                 passthroughDiscovery.discover();
                 // 扫描是否存在恶意利用链
                 FindEvilDiscovery findEvilDiscovery = new FindEvilDiscovery();
-                findEvilDiscovery.discover(delete);
+                findEvilDiscovery.findEvilDataflow(delete);
+                System.out.println("[+] 检测出的恶意文件数量: "+Constant.maliceNum + "\t 可疑文件数量: "+Constant.suspiciousNum);
+
                 if (!Constant.compileErrorFileNameList.isEmpty()) {
                     System.out.println("[-] jasper编译失败的文件:");
                     System.out.println(Constant.compileErrorFileNameList);
                     System.out.println("\n---------------------------------------------------------------------------\n" + "[+] 扫描结束");
-
                 }
-
                 //删除编译文件
                 FileUtils.delete(new File("JspCompile"));
             }

@@ -1,2 +1,14 @@
-[+] 添加工具类
-[+] 修正 debug 模式中的输出格式
+[+] 修复: 输出利用链不准确的bug,更精确
+[+] 修复: 利用链输出数量不准确的bug
+[+] 修复: stainSource.txt不会创建的问题
+
+[+] 添加: 统计恶意、可疑文件数量
+[+] 添加: 输出调试错误的jsp文件名,方便开发人员定位.
+
+[+] 优化: 文件布局优化，更紧凑(Constant文件下的文件被移到了ImitateJVM)
+[+] 优化: -info 参数更精确了
+[+] 优化: FileUtils 中的 writeLines 函数
+[+] 优化: 优化屎山,主要是对FindEvilDataflowMethodVisitor.FindEvilDataflowMethodVisitor函数进行相应的处理
+
+
+

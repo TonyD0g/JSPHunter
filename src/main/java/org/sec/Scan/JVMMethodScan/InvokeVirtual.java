@@ -2,7 +2,7 @@ package org.sec.Scan.JVMMethodScan;
 
 import org.apache.log4j.Logger;
 import org.objectweb.asm.Type;
-import org.sec.Constant.Constant;
+import org.sec.ImitateJVM.Constant;
 import org.sec.ImitateJVM.DebugOption;
 import org.sec.ImitateJVM.currentClassQueue;
 import org.sec.Scan.FindEvilDiscovery;
@@ -18,7 +18,7 @@ public class InvokeVirtual {
     private static final Logger logger = Logger.getLogger(InvokeVirtual.class);
     public static boolean getInfoFlag = false;
 
-    public String analysis(int opcode, String owner, String name, String desc, boolean itf, FindEvilDiscovery.FindEvilDataflowMethodVisitor findEvilDataflowMethodVisitor, List<Set<Integer>> argTaint, Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, boolean isDelete) {
+    public static boolean analysis(int opcode, String owner, String name, String desc, boolean itf, FindEvilDiscovery.FindEvilDataflowMethodVisitor findEvilDataflowMethodVisitor, List<Set<Integer>> argTaint, Set<Integer> printEvilMessage, String classFileName, Map<String, Set<Integer>> toEvilTaint, boolean isDelete) {
 
         //下面这些bool判断出了Runtime exc的，其他都是看有没有调用到字符串处理的方法，如果有字符串处理的方法，把污点传递(污点中包含字符串明文，传递到一些方法中会做对应模拟处理，比如append会把污点中的字符串相加)
         boolean subString = owner.equals("java/lang/String") && name.equals("substring");
@@ -49,7 +49,7 @@ public class InvokeVirtual {
             if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
                 outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " readObject,可能为重写ObjectInputStream.resolveClass型webshell", 2, isDelete);
             }
-            return "void";
+            return true;
         }
         if (ExpressionFactory) {
             Type[] argumentTypes = Type.getArgumentTypes(desc);
@@ -78,25 +78,16 @@ public class InvokeVirtual {
             }
             toEvilTaint.put("ExpressionFactory", taints);
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
-            return "void";
+            return true;
         }
         if (subString) {
             int k = 0;
             Set<Object> listAll = new HashSet<>();
-            for (Type argType : Type.getArgumentTypes(desc)) {
-                int size = argType.getSize();
-                while (size-- > 0) {
-                    Set taintList = findEvilDataflowMethodVisitor.operandStack.get(k);
-                    if (!taintList.isEmpty()) {
-                        listAll.addAll(taintList);
-                    }
-                    k++;
-                }
-            }
+            k = addTaintToOperandStack(desc, findEvilDataflowMethodVisitor, k, listAll);
             listAll.addAll(findEvilDataflowMethodVisitor.operandStack.get(k));
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
             findEvilDataflowMethodVisitor.operandStack.get(0).addAll(listAll);
-            return "void";
+            return true;
         }
 //      //这种情况不需要判断有没有攻击者可控的参数流入，下图告警的情况会在攻击者尝试通过字符串拼接等方式得到一个ProcessBuilder和Runtime才会产生的
         if (classCallMethod) {
@@ -117,7 +108,7 @@ public class InvokeVirtual {
                 outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " ProcessBuilder 或 Runtime,且参数外部可控", 1, isDelete);
             }
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
-            return "void";
+            return true;
         }
         if (decodeBuffer || jdk8DecodeString) {
             String encodeString = "";
@@ -131,10 +122,10 @@ public class InvokeVirtual {
                 } else if (taint instanceof Integer) {
                     findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
                     findEvilDataflowMethodVisitor.operandStack.get(0).addAll(taintList);
-                    return "void";
+                    return true;
                 }
             }
-            if (encodeString.length() > 0) {
+            if (!encodeString.isEmpty()) {
                 String decodeString = new String();
                 try {
                     decodeString = new String(new sun.misc.BASE64Decoder().decodeBuffer(encodeString));
@@ -164,12 +155,12 @@ public class InvokeVirtual {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    return "void";
+                    return true;
                 }
                 //如果不包含arrayList的byte数组，那么就正常传递污点
                 findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
                 findEvilDataflowMethodVisitor.operandStack.get(0).addAll(taintList);
-                return "void";
+                return true;
             }
         }
         if (TransformerFactory || exec || ProcessBuilderCommand || ProcessBuilderStart || newInstance || JdbcRowSetImpl || URLClassloader || TemplatesImplGetter || TemplatesImplNewTransformer || ELProcessor || readObject || methodInvoke || expr) {
@@ -245,7 +236,7 @@ public class InvokeVirtual {
                     toEvilTaint.put("TransformerFactory", taints);
                 }
                 findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
-                return "void";
+                return true;
             }
         }
         if (append && (!findEvilDataflowMethodVisitor.operandStack.get(0).isEmpty() || !findEvilDataflowMethodVisitor.operandStack.get(1).isEmpty())) {
@@ -258,13 +249,13 @@ public class InvokeVirtual {
             if (!taintList2.isEmpty()) {
                 findEvilDataflowMethodVisitor.operandStack.get(0).addAll(taintList2);
             }
-            return "void";
+            return true;
         }
         if (toString && !findEvilDataflowMethodVisitor.operandStack.get(0).isEmpty()) {
             Set taintList = findEvilDataflowMethodVisitor.operandStack.get(0);
             findEvilDataflowMethodVisitor.superVisitMethod(opcode, owner, name, desc, itf);
             findEvilDataflowMethodVisitor.operandStack.get(0).addAll(taintList);
-            return "void";
+            return true;
         }
         if (inputStream) {
             Type[] argumentTypes = Type.getArgumentTypes(desc);
@@ -301,6 +292,20 @@ public class InvokeVirtual {
                 }
             }
         }
-        return "";
+        return false;
+    }
+
+    public static int addTaintToOperandStack(String desc, FindEvilDiscovery.FindEvilDataflowMethodVisitor findEvilDataflowMethodVisitor, int k, Set<Object> listAll) {
+        for (Type argType : Type.getArgumentTypes(desc)) {
+            int size = argType.getSize();
+            while (size-- > 0) {
+                Set taintList = findEvilDataflowMethodVisitor.operandStack.get(k);
+                if (!taintList.isEmpty()) {
+                    listAll.addAll(taintList);
+                }
+                k++;
+            }
+        }
+        return k;
     }
 }

@@ -1,4 +1,4 @@
-package org.sec.Constant;
+package org.sec.ImitateJVM;
 
 import org.sec.Data.MethodReference;
 import org.sec.ImitateJVM.DebugOption;
@@ -51,6 +51,9 @@ public class Constant {
 
     // 记录当前方法是否被记录过,如果被记录过则为true
     public static boolean isLock = true;
+
+    // 用于统计恶意文件和可疑文件的数量
+    public static int suspiciousNum = 0, maliceNum = 0;
 
     static {
         // debug 专用
