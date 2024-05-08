@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.sec.Form.JSPHunter">
+  <grid id="27dc6" binding="JSPHunterPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+    <constraints>
+      <xy x="45" y="20" width="1082" height="448"/>
+    </constraints>
+    <properties>
+      <minimumSize width="1000" height="200"/>
+    </properties>
+    <border type="none"/>
+    <children>
+      <grid id="834cf" binding="selectJarPanel" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints/>
+        <properties/>
+        <border type="none" title="Input"/>
+        <children>
+          <component id="7332d" class="javax.swing.JButton" binding="jarButton">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="200" height="30"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value="Input The Folder"/>
+              <toolTipText value="输入想要扫描的Tomcat文件夹路径"/>
+            </properties>
+          </component>
+          <component id="c8759" class="javax.swing.JTextField" binding="jarPathTextField">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="200" height="30"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value=""/>
+              <toolTipText value="Tomcat文件夹路径"/>
+            </properties>
+          </component>
+          <component id="f4072" class="javax.swing.JLabel" binding="jarPathLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Folder Path :"/>
+            </properties>
+          </component>
+          <component id="544e0" class="javax.swing.JButton" binding="relyButton">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Input The Rely Path"/>
+              <toolTipText value="输入依赖文件夹路径"/>
+            </properties>
+          </component>
+          <component id="f67ec" class="javax.swing.JTextField" binding="relyPathTextField">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <toolTipText value="依赖文件夹路径"/>
+            </properties>
+          </component>
+          <component id="d15b3" class="javax.swing.JLabel" binding="relyPathLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Rely Path :"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <grid id="f36ad" binding="configPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints/>
+        <properties/>
+        <border type="none" title="Config"/>
+        <children>
+          <component id="8cc1d" class="javax.swing.JCheckBox" binding="DebugModeCheckBox">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Debug Mode"/>
+              <toolTipText value="是否开启debug模式,开启debug模式可得知污点流向"/>
+            </properties>
+          </component>
+          <component id="f41" class="javax.swing.JCheckBox" binding="InfoModeCheckBox">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Info Mode"/>
+              <toolTipText value="是否开启info模式,尝试获取webshell的password"/>
+            </properties>
+          </component>
+          <component id="729c" class="javax.swing.JCheckBox" binding="DeleteModeCheckBox">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Delete Mode"/>
+              <toolTipText value="是否开启删除模式,开启后将自动删除恶意webshell,慎用"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <vspacer id="1f1d">
+        <constraints/>
+      </vspacer>
+      <grid id="66d8a" binding="outputPanel" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints/>
+        <properties/>
+        <border type="none" title="Output"/>
+        <children>
+          <component id="485b8" class="javax.swing.JButton" binding="StartScanButton">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="StartScan"/>
+              <toolTipText value="开启扫描按钮,执行完毕后会自动弹出运行结果"/>
+            </properties>
+          </component>
+          <component id="feb57" class="javax.swing.JButton" binding="setOutputButton">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Set Output"/>
+              <toolTipText value="设置输出目录"/>
+            </properties>
+          </component>
+          <component id="622ae" class="javax.swing.JButton" binding="openOutputButton" default-binding="true">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Open Output"/>
+              <toolTipText value="打开运行结果"/>
+            </properties>
+          </component>
+          <component id="a97b2" class="javax.swing.JTextField" binding="outputText">
+            <constraints>
+              <grid row="0" column="1" row-span="2" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <toolTipText value="输出文件的路径"/>
+            </properties>
+          </component>
+          <component id="c0aea" class="javax.swing.JButton" binding="openStatin">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Open StainSource File"/>
+              <toolTipText value="打开污点源文件"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+    </children>
+  </grid>
+</form>

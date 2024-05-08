@@ -58,7 +58,7 @@ public class InvokeSpecial {
                         int taintNum = (Integer) node;
                         taints.add(taintNum);
                         if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " ProcessBuilder,且外部可控", 1, isDelete);
+                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, findEvilDataflowMethodVisitor.name ," ProcessBuilder", 1, isDelete);
                         }
                     }
                 }
@@ -90,7 +90,7 @@ public class InvokeSpecial {
                             taints.add(taintNum);
                         }
                         if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
-                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " defineClass或URLClassLoaderInit或ObjectInputStreamResolveClass,且受外部控制", 1, isDelete);
+                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, findEvilDataflowMethodVisitor.name," defineClass或URLClassLoaderInit或ObjectInputStreamResolveClass", 1, isDelete);
                         }
                     }
                 }

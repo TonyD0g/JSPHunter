@@ -12,29 +12,12 @@
 
 **注意：对内存马没用！**
 
-# 个人优化
-
-(相比于 JSPFinder,JSPKiller)
-
-- 使用jasper 编译(JSPFinder已经实现了)
-- PassthroughDiscovery 类性能比gadgetinspector的高 (JSPFinder已经实现了)
-- 将 FindEvilDiscovery 中的 visitMethodInsn 抽离出来,方便于扩展
-- 增强检测能力: 检测能力比JSPFinder更强,检测正常jsp文件格式不会报错,能把"webshell bypass"的绕过全部检测出来
-- 将污点源黑名单导出到一个文件中,使用fileUtils去读取,方便于扩展
-- -info参数.能辅助分析webshell,比如会尝试获取连接密码给自己所用或得知该shell是如何外部传参的
 
 # 使用方法
 
 ```md
 基础用法:
--d "要扫描的tomcat路径"
--cp "tomcat依赖"
--del // 加此参数会自动删除恶意shell,不会删除可疑文件,可疑文件需要人工分析
--debug // 开启用户debug选项,会输出污点流方向
--info // 获取shell的各种信息,可以用于尝试获取shell的连接密码.建议单个分析shell
-
-如：
-java -cp JSPHunter.jar org.sec.Main -d D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\webapps\ROOT -cp D:\phpstudy_pro\Extensions\apache-tomcat-8.5.81\lib -del 
+点开JSPHunter.jar,找到关于,有相关教程.
 
 高级用法:
 stainSource.txt为污点源文件,如果你发现新的污点源,可以手动添加到stainSource.txt,进而增强检测能力.
@@ -49,8 +32,7 @@ javax/servlet/http/HttpServletRequest	getParameter	(Ljava/lang/String;)Ljava/lan
 
 - 解决继承,实现接口能导致绕过的问题
 - 增加检测能力:   检测bypass文件夹下的jsp webshell
-- 设置导出结果名单 -o 参数
-- 将Evil方法导出为文件,便于修改和扩展
+- 一堆bug要修,屎山优化
 
 # webshell bypass
 
@@ -107,13 +89,6 @@ javax/servlet/http/HttpServletRequest	getParameter	(Ljava/lang/String;)Ljava/lan
 2.反编译class文件:
 	javap -c 	
 ```
-
-# 更新内容
-```md
-- 内核强化,稳定性更强
-- 底层工具库优化，减少漏洞
-```
-
 
 # Refence
 

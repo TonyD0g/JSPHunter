@@ -107,9 +107,9 @@ public class stainSource {
     // Stain source
     public static void getStainSource(ArrayList<Object[]> PASSTHROUGH_DATAFLOW) {
         for (Object[] passthrough : PASSTHROUGH_DATAFLOW) {
-            Constant.lines.add(passthrough[0] + "\t" + passthrough[1] + "\t" + passthrough[2] + "\t" + passthrough[3]);
+            Constant.stainSourceLines.add(passthrough[0] + "\t" + passthrough[1] + "\t" + passthrough[2] + "\t" + passthrough[3]);
         }
-        FileUtils.writeLines("." + File.separator + "stainSource.txt", Constant.lines,true);
+        FileUtils.writeLines("." + File.separator + "stainSource.txt", Constant.stainSourceLines,true);
     }
 
     public static void getStainSource(Object[][] PASSTHROUGH_DATAFLOW) {
@@ -120,7 +120,7 @@ public class stainSource {
                 stringBuilder.append(passthrough[i]);
                 stringBuilder.append(',');
             }
-            Constant.lines.add(passthrough[0] + "\t" + passthrough[1] + "\t" + passthrough[2] + stringBuilder);
+            Constant.stainSourceLines.add(passthrough[0] + "\t" + passthrough[1] + "\t" + passthrough[2] + stringBuilder);
             stringBuilder.delete(1, stringBuilder.length());
         }
 
@@ -133,6 +133,6 @@ public class stainSource {
                 throw new RuntimeException(e);
             }
         }
-        FileUtils.writeLines("." + File.separator + "stainSource.txt", Constant.lines,false);
+        FileUtils.writeLines("." + File.separator + "stainSource.txt", Constant.stainSourceLines,false);
     }
 }

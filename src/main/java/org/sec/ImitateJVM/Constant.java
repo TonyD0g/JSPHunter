@@ -1,9 +1,7 @@
 package org.sec.ImitateJVM;
 
 import org.sec.Data.MethodReference;
-import org.sec.ImitateJVM.DebugOption;
-import org.sec.ImitateJVM.PrintTaint;
-//import org.sec.Vuln.Spring.SpringController;
+import org.sec.Utils.Render.ResultInfo;
 
 import java.util.*;
 
@@ -40,7 +38,7 @@ public class Constant {
     public static final Map<MethodReference.Handle, MethodReference> methodMap = new HashMap<>();
 
     // 记录所有的 stainSource
-    public static List<String> lines = new ArrayList<>();
+    public static List<String> stainSourceLines = new ArrayList<>();
 
     public static PrintTaint tempPrintTaint = new PrintTaint();
 
@@ -49,9 +47,6 @@ public class Constant {
     // 是否输出某个特定函数的反编译信息
     public static boolean isPrintDecompileInfo = false;
 
-    // 记录当前方法是否被记录过,如果被记录过则为true
-    public static boolean isLock = true;
-
     // 用于统计恶意文件和可疑文件的数量
     public static int suspiciousNum = 0, maliceNum = 0;
 
@@ -59,5 +54,23 @@ public class Constant {
         // debug 专用
         DebugOption.setFilter("java/lang/StringBuilder", "toString", "()Ljava/lang/String;");
     }
+
+    //////  以下是 JSPHunter 的 gui 版本专用
+    public static String versionNumber = "JSPHunter (Version:   1.8.1)  Modify from TonyD0g";
+    public static String dict; // jar 目录
+    public static String classPath; // 依赖目录
+    public static boolean isWindows = false; // 是否是windows系统
+    public static boolean isOpenInfoMode = false; // 是否开启信息模式
+    public static boolean isOpenDeleteMode = false; // 是否开启删除模式
+    public static boolean isOpenDebugMode = false; // 是否开启debug模式
+
+
+    public static Map<String, Boolean> classFileNameToIsLock = new HashMap<>(); // 文件名对应是否被锁
+
+    public static String outputPath = ""; // 运行结果文件的输出路径
+
+    public static List<ResultInfo> results = new ArrayList<>(); // 用于可视化输出
+    public static ResultInfo resultInfo = new ResultInfo(); // 临时存储 resultInfo ,  用于检测单个文件后输出利用
+
 }
 

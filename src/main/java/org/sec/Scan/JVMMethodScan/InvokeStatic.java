@@ -24,9 +24,9 @@ public class InvokeStatic {
                     taints.add(taintNum);
                     if (findEvilDataflowMethodVisitor.name.equals("_jspService") || currentClassQueue.fatherClass.equals("_jspService")) {
                         if (isMethodUtilInvoke) {
-                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " MethodUtil.invoke", 1, isDelete);
+                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, findEvilDataflowMethodVisitor.name," MethodUtil.invoke", 1, isDelete);
                         } else {
-                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, "的 " + findEvilDataflowMethodVisitor.name + " JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, isDelete);
+                            outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, findEvilDataflowMethodVisitor.name," JspRuntimeLibrary,可能为利用jsp标签属性注入字符串解析", 2, isDelete);
                         }
                         break;
                     }

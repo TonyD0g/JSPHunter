@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 public class stringUtils {
     private static final Logger logger = Logger.getLogger(stringUtils.class);
@@ -228,6 +229,18 @@ public class stringUtils {
     public static boolean deleteByFileName(String filePath){
         File fileToDelete = new File(filePath);
         return fileToDelete.delete();
+    }
+
+    /** 路径安全检查, 返回 true 就是不通过,被安全拦截**/
+    public static boolean pathSecurityCheck(boolean operatingSystemModel,String content,String restrictingSuffixes){
+        // 暂不考虑 mac ,因为我没 mac
+        String pathRegex;
+        if (operatingSystemModel) {
+            pathRegex = String.format("%s%s$","^[a-zA-Z]:\\\\(?:[^\\\\/:*?\"<>|\\r ]+\\\\)*[^\\\\/:*?\"<>|\\r ]*",restrictingSuffixes); // Windows路径示例:    C:\2024.05.01.09.51.html
+        } else {
+            pathRegex = String.format("%s%s$","^/([^/]+/)*[^/]+",restrictingSuffixes);; // Linux路径示例:   /home/user/file.html
+        }
+        return !Pattern.matches(pathRegex, content);
     }
 }
 

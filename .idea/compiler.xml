@@ -9,5 +9,8 @@
         <module name="SafeTools-Boot" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="code-inspector-core" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

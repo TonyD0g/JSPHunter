@@ -3,6 +3,8 @@ package org.sec.ImitateJVM;
 import org.apache.log4j.Logger;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.AnalyzerAdapter;
+import org.sec.Scan.FindEvilDiscovery;
+import org.sec.Scan.PassthroughDiscovery;
 import org.sec.Scan.getAllString;
 import org.sec.Utils.FileUtils;
 import org.sec.Utils.stringUtils;
@@ -804,7 +806,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
         } else {
             isNormal = true; // 2.处理正常情况
         }
-        if(isNormal){
+        if (isNormal) {
             for (int i = 0; i < argTypes.length; i++) {
                 Type argType = argTypes[i];
                 if (argType.getSize() > 0) {
@@ -859,8 +861,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 }
 
                 // 黑名单匹配 污点源
-                Constant.lines = FileUtils.readLines(".\\stainSource.txt", String.valueOf(StandardCharsets.UTF_8));
-                for (String line : Constant.lines) {
+                Constant.stainSourceLines = FileUtils.readLines(".\\stainSource.txt", String.valueOf(StandardCharsets.UTF_8));
+                for (String line : Constant.stainSourceLines) {
                     // 按\t进行切割
                     String[] finalPassthrough = stringUtils.splitBySymbol(line, "\t");
                     // 如果符合我们名单的某一项,就将 这一项中能影响返回值的方法参数传入 resultTaint
@@ -888,8 +890,8 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                     }
                 }
 
-                // 解决思路: 利用 stainSource中的内置源,如果printTaint存在于其中，则开始记录，否则不记录.不记录的标准时如果ldc为连续的：\r\n</body>\r\n</html> 且 javax/servlet/jsp/JspWriter.write(Ljava/lang/String;)V时 ,则 isExpChains = false
-                if (isStopRecording && (printTaint.owner.equals("javax/servlet/jsp/JspWriter") && printTaint.name.equals("write") && printTaint.desc.equals("(Ljava/lang/String;)V"))) {
+                // 解决思路: 利用 stainSource中的内置源,如果printTaint存在于其中，则开始记录，否则不记录.不记录的标准是如果ldc为连续的：\r\n</body>\r\n</html> 且 javax/servlet/jsp/JspWriter.write:(Ljava/lang/String;)V 时 ,则 isExpChains = false
+                if (isStopRecording && printTaint.owner.equals("javax/servlet/jsp/JspWriter") && printTaint.name.equals("getBufferSize") && printTaint.desc.equals("()I")) {
                     isExpChains = false;
                 }
 
@@ -1032,7 +1034,6 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
             // 可能是String类型,遍历输出String类型,密码可能就存在里面
             String cstToString = cst.toString();
             getAllString.stringsList.add(cstToString);
-
             isStopRecording = cstToString.equals("\r\n</body>\r\n</html>") ? true : false;
         }
         super.visitLdcInsn(cst);
@@ -1115,9 +1116,12 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
      */
     @Override
     public void visitEnd() {
-        if (DebugOption.userDebug && Constant.isPrintDecompileInfo && Constant.isLock && Constant.tempPrintTaint.PrintTaintStack.size() != 0) {
+        if (!(this instanceof PassthroughDiscovery.PassthroughDataflowMethodVisitor) &&
+                DebugOption.userDebug && Constant.isPrintDecompileInfo &&
+                Constant.classFileNameToIsLock.get(((FindEvilDiscovery.FindEvilDataflowMethodVisitor) this).classFileName) &&
+                Constant.tempPrintTaint.PrintTaintStack.size() != 0) {
             Constant.tempPrintTaint.printCurrentTaintStack("");
-            Constant.isLock = false;
+            Constant.classFileNameToIsLock.put(((FindEvilDiscovery.FindEvilDataflowMethodVisitor) this).classFileName, false);
         }
         super.visitEnd();
     }

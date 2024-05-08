@@ -48,6 +48,5 @@ public class JspAnalysis {
                 }
             }
         }
-        System.out.println("\n---------------------------------------------------------------------------\nScan begin:\n");
     }
 }

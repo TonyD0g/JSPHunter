@@ -32,6 +32,7 @@ public class FindEvilDiscovery {
             ClassReader cr = new ClassReader(classByte);
             FindEvilDataflowClassVisitor findEvilDataflowClassVisitor = new FindEvilDataflowClassVisitor(EvilDataflow, Opcodes.ASM5, methodToVisit, Constant.classNameToClassFileName.get(className), delete);
             cr.accept(findEvilDataflowClassVisitor, ClassReader.EXPAND_FRAMES);
+            getAllString.stringsList.clear();
         }
     }
 
@@ -43,7 +44,7 @@ public class FindEvilDiscovery {
         private final String classFileName;
         private final Set<Integer> printEvilMessage = new HashSet<>();
 
-        private boolean isDelete = false;
+        private final boolean isDelete;
 
         public FindEvilDataflowClassVisitor(Map<MethodReference.Handle, Map<String, Set<Integer>>> EvilDataflow, int api, MethodReference.Handle methodToVisit, String classFileName, boolean delete) {
             super(api);
@@ -260,15 +261,12 @@ public class FindEvilDiscovery {
                                 //printEvilMessage中如果包含1，则表示该类已经被标记为webshell，并且已经输出告警。如果包含1的话则不要再重复输出告警了。
                                 if (!printEvilMessage.contains(1)) {
                                     printEvilMessage.add(1);
-                                    String msg;
                                     if (evilType.equals("Behinder")) {
-                                        msg = "[+] " + "(检测结果: 恶意) " + Constant.classNameToJspName.get(classFileName) + "------该文件所调用的ClassLoader.defineClass可被request污染，疑似冰蝎/哥斯拉/天蝎webshell";
+                                        outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, this.name ," ClassLoader.defineClass", 1, isDelete);
                                     } else {
-                                        msg = "[+] " + "(检测结果: 恶意) " + Constant.classNameToJspName.get(classFileName) + "   " + evilType + "可被request污染，该文件为webshell!!!";
+                                        outPut.outPutEvilOutcomeType2(printEvilMessage, classFileName, this.name ," "+evilType, 1, isDelete);
                                     }
-                                    logger.info(msg);
                                     Constant.evilClass.add(classFileName);
-                                    Constant.msgList.add(msg);
                                 }
                             }
                         }

@@ -18,15 +18,30 @@ public class FileUtils {
     private static final Logger logger = Logger.getLogger(FileUtils.class);
     private static final boolean DEBUG = true;
 
-    /** 创建文件 */
-    public static boolean createFile(String filePath){
-        File file = new File(filePath);
+    /**
+     * 创建/新建 文件,注意: 会覆盖同名文件
+     */
+    public static boolean createFile(String filePath) {
         try {
-            return file.createNewFile();
+            File file = new File(filePath);
+            if (!file.exists()) {
+                File parentFile = file.getParentFile();
+                if (!parentFile.exists()) {
+                    boolean created = parentFile.mkdirs();
+                    if (!created) {
+                        return false;
+                    }
+                }
+                file.createNewFile();
+            } else {
+                FileOutputStream fos = new FileOutputStream(filePath);
+                fos.close();
+            }
+            return true;
         } catch (IOException e) {
             logger.error("An error occurred", e);
+            return false;
         }
-        return false;
     }
 
     /**
@@ -45,14 +60,16 @@ public class FileUtils {
         return String.format("%s%s.class", path, className.replace('.', File.separatorChar));
     }
 
-    /** 根据想要的后缀名读取文件到列表中  (读取)*/
-    public static void getWantSuffixFilePath(String path, String wantSuffix,ArrayList<String> filePathArray) {
+    /**
+     * 根据想要的后缀名读取文件到列表中  (读取)
+     */
+    public static void getWantSuffixFilePath(String path, String wantSuffix, ArrayList<String> filePathArray) {
         ArrayList<String> filePathList = new ArrayList<>();
         readDir(path, filePathList);
         String suffix;
         for (String filePath : filePathList) {
             suffix = readSuffix(filePath);
-            if(Objects.equals(suffix, wantSuffix)){
+            if (Objects.equals(suffix, wantSuffix)) {
                 filePathArray.add(filePath);
             }
         }
@@ -207,24 +224,41 @@ public class FileUtils {
     }
 
     /**
+     * 将单个字符串写到文件 (写入)
+     */
+    public static void writeLine(String filepath, String line, boolean append) {
+        OutputStream out = null;
+        Writer writer = null;
+        BufferedWriter bufferedWriter = null;
+        try {
+            out = new FileOutputStream(filepath, append); // 使用追加模式
+            writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+            bufferedWriter = new BufferedWriter(writer);
+            bufferedWriter.write(line+"\n");
+        } catch (IOException e) {
+            logger.error("An error occurred", e);
+        } finally {
+            IOUtils.closeQuietly(bufferedWriter);
+            IOUtils.closeQuietly(writer);
+            IOUtils.closeQuietly(out);
+        }
+    }
+
+    /**
      * 将多行写到文件 (写入)
      */
     public static void writeLines(String filepath, List<String> lines, boolean append) {
         if (lines == null || lines.isEmpty()) return;
-
         File file = new File(filepath);
         File dirFile = file.getParentFile();
         mkdir(dirFile);
-
         OutputStream out = null;
         Writer writer = null;
         BufferedWriter bufferedWriter = null;
-
         try {
             out = new FileOutputStream(file, append); // 使用追加模式
             writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
             bufferedWriter = new BufferedWriter(writer);
-
             for (String line : lines) {
                 bufferedWriter.write(line);
                 bufferedWriter.newLine();

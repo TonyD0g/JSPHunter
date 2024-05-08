@@ -18,16 +18,16 @@ public class InvokeInterface {
 
         if (scriptEngineEval) {
             Set<Integer> taintList = argTaint.get(1);
-            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "的 " + findEvilDataflowMethodVisitor.name + " ScriptEngine", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, findEvilDataflowMethodVisitor.name, " ScriptEngine", toEvilTaint, taintList, 1, isDelete);
         }
 
         if (scriptEnginePut) {
             Set<Integer> taintList = argTaint.get(2);
-            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "的 " + findEvilDataflowMethodVisitor.name + " ScriptEngine", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, findEvilDataflowMethodVisitor.name, " ScriptEngine", toEvilTaint, taintList, 1, isDelete);
         }
         if (isMethodAccessorInvoke) {
             Set<Integer> taintList = argTaint.get(0);
-            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, toEvilTaint, taintList, "的 " + findEvilDataflowMethodVisitor.name + " MethodAccessor.Invoke", 1, isDelete);
+            outPut.outPutEvilOutcomeType1(printEvilMessage, classFileName, findEvilDataflowMethodVisitor.name, " MethodAccessor.Invoke", toEvilTaint, taintList, 1, isDelete);
         }
     }
 }

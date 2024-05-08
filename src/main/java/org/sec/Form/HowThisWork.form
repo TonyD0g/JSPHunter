@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.sec.Form.HowThisWork">
+  <grid id="27dc6" binding="workPanel" layout-manager="GridLayoutManager" row-count="6" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="1130" height="400"/>
+    </constraints>
+    <properties>
+      <font name="Consolas" size="20"/>
+    </properties>
+    <border type="none" title="steps"/>
+    <children>
+      <component id="7256f" class="javax.swing.JLabel" binding="firstLabel">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font name="Consolas" size="20"/>
+          <text value="1. 获取输入的 Jsp 文件或列表,并将其一个个编译为 .java 文件 (通过原生的依赖来编译,而非模版)"/>
+        </properties>
+      </component>
+      <component id="8364d" class="javax.swing.JLabel" binding="secondLabel">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font name="Consolas" size="20"/>
+          <text value="2. 使用 ASM 库获取每个 .java 文件中 _jspService 函数所使用的所有函数和类"/>
+        </properties>
+      </component>
+      <component id="2a745" class="javax.swing.JLabel" binding="thirdLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font name="Consolas" size="20"/>
+          <text value="3. 在每个方法中查找所有方法调用"/>
+        </properties>
+      </component>
+      <component id="9bf4b" class="javax.swing.JLabel" binding="fourthLabel">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font name="Consolas" size="20"/>
+          <text value="4. 拓扑排序方法,得知调用顺序"/>
+        </properties>
+      </component>
+      <component id="a5509" class="javax.swing.JLabel" binding="fifthLabel">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font name="Consolas" size="20"/>
+          <text value="5. 在方法调用之间获取参数污点,主要是通过外部源入手,将外部源会用到的函数进行匹配并将其作为 source"/>
+        </properties>
+      </component>
+      <component id="6e6e1" class="javax.swing.JLabel" binding="sixthLabel">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font name="Consolas" size="20"/>
+          <text value="6. 通过模拟栈帧的方式来模拟函数执行过程,如果定义的 source 流入了恶意函数中,则有理由怀疑其为恶意 JSP Webshell"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

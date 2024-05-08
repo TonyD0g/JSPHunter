@@ -9,6 +9,7 @@ public class MethodReference {
     private final String desc;
     private final boolean isStatic;
 
+
     public MethodReference(String owner, String name, String desc, boolean isStatic) {
         this.owner = owner;
         this.name = name;

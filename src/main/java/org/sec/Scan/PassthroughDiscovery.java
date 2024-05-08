@@ -65,7 +65,7 @@ public class PassthroughDiscovery {
         }
 
         // Topological sort methods,逆拓扑排序 (核心部分)
-        logger.debug("Performing topological sort...");
+        //Constant.msgList.add("执行拓扑排序...");
         Set<MethodReference.Handle> dfsStack = new HashSet<>();
         Set<MethodReference.Handle> visitedNodes = new HashSet<>();
         List<MethodReference.Handle> sortedMethods = new ArrayList<>(outgoingReferences.size());
@@ -74,9 +74,8 @@ public class PassthroughDiscovery {
             // 这样才能实现入参、返回值、函数调用链之间的污点影响
             dfsSort(outgoingReferences, sortedMethods, visitedNodes, dfsStack, root);
         }
-        logger.debug(String.format("Outgoing references %d, sortedMethods %d", outgoingReferences.size(), sortedMethods.size()));
+        //Constant.msgList.add(String.format("Outgoing references %d, sortedMethods %d", outgoingReferences.size(), sortedMethods.size()));
         Constant.sortedMethodCalls.addAll(sortedMethods);
-
     }
 
     /**
