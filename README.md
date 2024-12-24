@@ -2,7 +2,7 @@
 
 **基于污点分析和模拟栈帧技术的JSP Webshell检测**     `仅做学习记录`
 
-我发现JSPFinder和JSPKiller模拟栈帧的部分几乎一致，因此不重复造轮子，直接在JSPFinder的基础上进行改进,所以 **85%** 代码来源于JSPFinder和JSPKiller,感激这两个作品的作者.   
+我发现JSPFinder和JSPKiller模拟栈帧的部分几乎一致，因此不重复造轮子，直接在JSPFinder的基础上进行改进,所以 **85%** 以上的代码来源于JSPFinder和JSPKiller,感激这两个作品的作者.   
 
 尝试对其进行优化检测逻辑和重构.
 
