@@ -91,9 +91,11 @@ public class JSPHunter {
 
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             Constant.isWindows = true;
-        }
+        } else if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+            Constant.isMac = true;
+        } else Constant.isLinux = true;
 
-//        DebugModeCheckBox.setSelected(false); // todo debug模式有bug,也不能算bug: 当使用newInstance时可以二次debug分析
+//        DebugModeCheckBox.setSelected(false); // todo debug模式有bug,但是好像也不能算bug: 当使用newInstance时可以二次debug分析
 //        InfoModeCheckBox.setSelected(false);
 //        DeleteModeCheckBox.setSelected(false);
 
@@ -126,16 +128,19 @@ public class JSPHunter {
         });
 
         openStatin.addActionListener(e -> {
-            String cmd;
-            if (Constant.isWindows) {
-                cmd = "cmd /c start notepad.exe ." + File.separator + "stainSource.txt";
-            } else {
-                cmd = "xdg-open ." + File.separator + "stainSource.txt";
-            }
             try {
-                Runtime.getRuntime().exec(cmd);
+                ProcessBuilder builder;
+                if (Constant.isWindows) {
+                    builder = new ProcessBuilder("cmd", "/c", "start", "notepad.exe", ".\\stainSource.txt");
+                } else if (Constant.isMac) {
+                    builder = new ProcessBuilder("open", "./stainSource.txt"); // macOS
+                } else {
+                    builder = new ProcessBuilder("xdg-open", "./stainSource.txt"); // Linux
+                }
+                builder.start(); // 无需处理流（短暂进程可忽略输出）
             } catch (IOException e1) {
-                JOptionPane.showMessageDialog(null, "打开文件失败: " + e1.getMessage(), "错误提示", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(null, "打开文件失败: " + e1.getMessage(),
+                        "错误提示", JOptionPane.ERROR_MESSAGE); // 改为 ERROR 更醒目
             }
         });
 
@@ -181,16 +186,31 @@ public class JSPHunter {
     }
 
     public static void openOutput(String fileName) {
-        String cmd;
-        if (Constant.isWindows) {
-            cmd = "cmd /c start \"\" " + fileName;
-        } else {
-            cmd = "xdg-open " + fileName;
-        }
         try {
-            Runtime.getRuntime().exec(cmd);
-        } catch (IOException e1) {
-            JOptionPane.showMessageDialog(null, "打开文件失败: " + e1.getMessage(), "错误提示", JOptionPane.INFORMATION_MESSAGE);
+            ProcessBuilder builder = new ProcessBuilder();
+            // 设置工作目录为文件所在目录（避免相对路径问题）
+            File targetFile = new File(fileName);
+            builder.directory(targetFile.getParentFile());
+
+            if (Constant.isWindows) {
+                builder.command("cmd", "/c", "start", "\"\"", targetFile.getName());
+            } else if (Constant.isMac) {
+                builder.command("open", targetFile.getName()); // macOS
+            } else {
+                builder.command("xdg-open", targetFile.getName()); // Linux
+            }
+
+            // 合并标准/错误流，避免阻塞
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+            // 非阻塞等待（可选）
+            new Thread(() -> {
+                try { process.waitFor(); } catch (InterruptedException ignored) {}
+            }).start();
+
+        } catch (IOException e) {
+            String errorMsg = "打开文件失败: " + e.getMessage();
+            JOptionPane.showMessageDialog(null, errorMsg, "错误提示", JOptionPane.ERROR_MESSAGE);
         }
     }
 

@@ -64,7 +64,7 @@ public class PrintTaint<T> {
         deleteUnrelatedElement();
         if (Constant.tempPrintTaint.PrintTaintStack.size() - 1 > 0) {
             String tempString;
-            Constant.msgList.add(String.format("<br><span class=\"badge badge-warning\">[ %s ] 完整的利用链如下:<br>----------------------------------------------------------------</span>", stainType));
+            Constant.msgList.add(String.format("<br><span class=\"badge badge-warning\">[ %s ] 可能的利用链如下:<br>----------------------------------------------------------------</span>", stainType));
             for (int index = 0; index <= Constant.tempPrintTaint.PrintTaintStack.size() - 1; index++) {
                 tempString = PrintTaintStack.get(index).stainIndex.toString();
                 Constant.msgList.add(String.format("[ owner: %s , name: %s , desc: %s , stainIndex: %s ]\n",
@@ -76,7 +76,7 @@ public class PrintTaint<T> {
             Constant.msgList.add("<span class=\"badge badge-warning\">----------------------------------------------------------------</span><br><br><br>");
             Constant.tempPrintTaint.clear();
         }
-        if(DebugOption.userDebug && Constant.msgList.stream().anyMatch(str -> str.contains("完整的利用链如下"))){
+        if(DebugOption.userDebug && Constant.msgList.stream().anyMatch(str -> str.contains("可能的利用链如下"))){
             List<String> tempMsgList = Constant.resultInfo.getMsgList();
             tempMsgList.addAll(new ArrayList<>(Constant.msgList));
             Constant.resultInfo.setMsgList(tempMsgList);

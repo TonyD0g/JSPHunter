@@ -60,6 +60,8 @@ public class Constant {
     public static String dict; // jar 目录
     public static String classPath; // 依赖目录
     public static boolean isWindows = false; // 是否是windows系统
+    public static boolean isLinux = false; // 是否是linux系统
+    public static boolean isMac = false; // 是否是mac系统
     public static boolean isOpenInfoMode = false; // 是否开启信息模式
     public static boolean isOpenDeleteMode = false; // 是否开启删除模式
     public static boolean isOpenDebugMode = false; // 是否开启debug模式
