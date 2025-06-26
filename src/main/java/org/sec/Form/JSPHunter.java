@@ -85,7 +85,7 @@ public class JSPHunter {
     }
 
     private void initAction() {
-        //todo 上线前把这两个初值删了
+        // 示例输入
         jarPathTextField.setText("/Users/macmini/Environment/Tomcat/apache-tomcat-9.0.106/webapps/ROOT/");
         relyPathTextField.setText("/Users/macmini/Environment/Tomcat/apache-tomcat-9.0.106/lib");
 
