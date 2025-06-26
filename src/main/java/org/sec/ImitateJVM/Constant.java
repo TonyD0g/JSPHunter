@@ -55,8 +55,8 @@ public class Constant {
         DebugOption.setFilter("java/lang/StringBuilder", "toString", "()Ljava/lang/String;");
     }
 
-    //////  以下是 JSPHunter 的 gui 版本专用
-    public static String versionNumber = "JSPHunter (Version:   1.8.1)  Modify from TonyD0g";
+    //  以下是 JSPHunter 的 gui 版本专用
+    public static String versionNumber = "JSPHunter (Version:   1.8.2)  Modify from TonyD0g";
     public static String dict; // jar 目录
     public static String classPath; // 依赖目录
     public static boolean isWindows = false; // 是否是windows系统

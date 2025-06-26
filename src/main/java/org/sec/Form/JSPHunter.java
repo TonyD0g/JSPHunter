@@ -85,9 +85,9 @@ public class JSPHunter {
     }
 
     private void initAction() {
-//        //todo 上线前把这两个初值删了
-//        jarPathTextField.setText("D:\\Soft\\phpstudy_pro\\Extensions\\apache-tomcat-8.5.96\\webapps\\ROOT");
-//        relyPathTextField.setText("C:\\Users\\14383\\Desktop\\lib");
+        //todo 上线前把这两个初值删了
+        jarPathTextField.setText("/Users/macmini/Environment/Tomcat/apache-tomcat-9.0.106/webapps/ROOT/");
+        relyPathTextField.setText("/Users/macmini/Environment/Tomcat/apache-tomcat-9.0.106/lib");
 
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             Constant.isWindows = true;
@@ -228,74 +228,175 @@ public class JSPHunter {
      */
     private void $$$setupUI$$$() {
         JSPHunterPanel = new JPanel();
-        JSPHunterPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        // 修改主面板布局为垂直BoxLayout [6,7](@ref)
+        JSPHunterPanel.setLayout(new BoxLayout(JSPHunterPanel, BoxLayout.Y_AXIS));
         JSPHunterPanel.setMinimumSize(new Dimension(1000, 200));
+
+        // 输入面板
         selectJarPanel = new JPanel();
-        selectJarPanel.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
-        JSPHunterPanel.add(selectJarPanel);
-        selectJarPanel.setBorder(BorderFactory.createTitledBorder(null, "Input", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
-        jarButton = new JButton();
-        jarButton.setText("Input The Folder");
-        jarButton.setToolTipText("输入想要扫描的Tomcat文件夹路径");
-        selectJarPanel.add(jarButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(200, 30), null, 0, false));
+        selectJarPanel.setLayout(new GridBagLayout()); // 使用GridBagLayout
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10); // 设置间距
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // 第一行：文件夹路径标签
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        jarPathLabel = new JLabel();
+        jarPathLabel.setText("Folder Path :");
+        selectJarPanel.add(jarPathLabel, gbc);
+
+        // 第一行：文件夹路径文本框
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
         jarPathTextField = new JTextField();
         jarPathTextField.setText("");
         jarPathTextField.setToolTipText("Tomcat文件夹路径");
-        selectJarPanel.add(jarPathTextField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(200, 30), null, 0, false));
-        jarPathLabel = new JLabel();
-        jarPathLabel.setText("Folder Path :");
-        selectJarPanel.add(jarPathLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        selectJarPanel.add(jarPathTextField, gbc);
+
+        // 第一行：选择文件夹按钮
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        jarButton = new JButton();
+        jarButton.setText("Input The Folder");
+        jarButton.setToolTipText("输入想要扫描的Tomcat文件夹路径");
+        selectJarPanel.add(jarButton, gbc);
+
+        // 第二行：依赖路径标签
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        relyPathLabel = new JLabel();
+        relyPathLabel.setText("Rely Path :");
+        selectJarPanel.add(relyPathLabel, gbc);
+
+        // 第二行：依赖路径文本框
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        relyPathTextField = new JTextField();
+        relyPathTextField.setToolTipText("依赖文件夹路径");
+        selectJarPanel.add(relyPathTextField, gbc);
+
+        // 第二行：选择依赖按钮
+        gbc.gridx = 2;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
         relyButton = new JButton();
         relyButton.setText("Input The Rely Path");
         relyButton.setToolTipText("输入依赖文件夹路径");
-        selectJarPanel.add(relyButton, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        relyPathTextField = new JTextField();
-        relyPathTextField.setToolTipText("依赖文件夹路径");
-        selectJarPanel.add(relyPathTextField, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        relyPathLabel = new JLabel();
-        relyPathLabel.setText("Rely Path :");
-        selectJarPanel.add(relyPathLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        selectJarPanel.add(relyButton, gbc);
+
+        selectJarPanel.setBorder(BorderFactory.createTitledBorder(null, "Input", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        JSPHunterPanel.add(selectJarPanel);
+
+        // 添加垂直间距
+        JSPHunterPanel.add(Box.createVerticalStrut(15));
+
+        // 配置面板
         configPanel = new JPanel();
-        configPanel.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
-        JSPHunterPanel.add(configPanel);
-        configPanel.setBorder(BorderFactory.createTitledBorder(null, "Config", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        configPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbcConfig = new GridBagConstraints();
+        gbcConfig.insets = new Insets(5, 10, 5, 10);
+        gbcConfig.fill = GridBagConstraints.HORIZONTAL;
+        gbcConfig.anchor = GridBagConstraints.WEST;
+
+        // 第一列：Debug Mode
+        gbcConfig.gridx = 0;
+        gbcConfig.gridy = 0;
+        gbcConfig.weightx = 1.0;
         DebugModeCheckBox = new JCheckBox();
         DebugModeCheckBox.setText("Debug Mode");
         DebugModeCheckBox.setToolTipText("是否开启debug模式,开启debug模式可得知污点流向");
-        configPanel.add(DebugModeCheckBox, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        configPanel.add(DebugModeCheckBox, gbcConfig);
+
+        // 第二列：Info Mode
+        gbcConfig.gridx = 1;
+        gbcConfig.gridy = 0;
+        gbcConfig.weightx = 1.0;
         InfoModeCheckBox = new JCheckBox();
         InfoModeCheckBox.setText("Info Mode");
         InfoModeCheckBox.setToolTipText("是否开启info模式,尝试获取webshell的password");
-        configPanel.add(InfoModeCheckBox, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        configPanel.add(InfoModeCheckBox, gbcConfig);
+
+        // 第三列：Delete Mode
+        gbcConfig.gridx = 2;
+        gbcConfig.gridy = 0;
+        gbcConfig.weightx = 1.0;
         DeleteModeCheckBox = new JCheckBox();
         DeleteModeCheckBox.setText("Delete Mode");
         DeleteModeCheckBox.setToolTipText("是否开启删除模式,开启后将自动删除恶意webshell,慎用");
-        configPanel.add(DeleteModeCheckBox, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final Spacer spacer1 = new Spacer();
-        JSPHunterPanel.add(spacer1);
+        configPanel.add(DeleteModeCheckBox, gbcConfig);
+
+        configPanel.setBorder(BorderFactory.createTitledBorder(null, "Config", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        JSPHunterPanel.add(configPanel);
+
+        // 添加垂直间距
+        JSPHunterPanel.add(Box.createVerticalStrut(15));
+
+        // 输出面板
         outputPanel = new JPanel();
-        outputPanel.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
-        JSPHunterPanel.add(outputPanel);
-        outputPanel.setBorder(BorderFactory.createTitledBorder(null, "Output", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        outputPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbcOutput = new GridBagConstraints();
+        gbcOutput.insets = new Insets(5, 10, 5, 10);
+        gbcOutput.fill = GridBagConstraints.HORIZONTAL;
+        gbcOutput.anchor = GridBagConstraints.WEST;
+
+        // 第一行：开始扫描按钮
+        gbcOutput.gridx = 0;
+        gbcOutput.gridy = 0;
+        gbcOutput.weightx = 0;
         StartScanButton = new JButton();
         StartScanButton.setText("StartScan");
         StartScanButton.setToolTipText("开启扫描按钮,执行完毕后会自动弹出运行结果");
-        outputPanel.add(StartScanButton, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        outputPanel.add(StartScanButton, gbcOutput);
+
+        // 第一行：设置输出按钮
+        gbcOutput.gridx = 1;
+        gbcOutput.gridy = 0;
+        gbcOutput.weightx = 0;
         setOutputButton = new JButton();
         setOutputButton.setText("Set Output");
         setOutputButton.setToolTipText("设置输出目录");
-        outputPanel.add(setOutputButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        outputPanel.add(setOutputButton, gbcOutput);
+
+        // 第一行：打开输出按钮
+        gbcOutput.gridx = 2;
+        gbcOutput.gridy = 0;
+        gbcOutput.weightx = 0;
         openOutputButton = new JButton();
         openOutputButton.setText("Open Output");
         openOutputButton.setToolTipText("打开运行结果");
-        outputPanel.add(openOutputButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        outputPanel.add(openOutputButton, gbcOutput);
+
+        // 第二行：输出路径文本框
+        gbcOutput.gridx = 0;
+        gbcOutput.gridy = 1;
+        gbcOutput.gridwidth = 2; // 跨两列
+        gbcOutput.weightx = 1.0;
         outputText = new JTextField();
         outputText.setToolTipText("输出文件的路径");
-        outputPanel.add(outputText, new GridConstraints(0, 1, 2, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        outputPanel.add(outputText, gbcOutput);
+
+        // 第二行：打开污点源文件按钮
+        gbcOutput.gridx = 2;
+        gbcOutput.gridy = 1;
+        gbcOutput.gridwidth = 1;
+        gbcOutput.weightx = 0;
         openStatin = new JButton();
         openStatin.setText("Open StainSource File");
         openStatin.setToolTipText("打开污点源文件");
-        outputPanel.add(openStatin, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        outputPanel.add(openStatin, gbcOutput);
+
+        outputPanel.setBorder(BorderFactory.createTitledBorder(null, "Output", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        JSPHunterPanel.add(outputPanel);
+
+        // 添加垂直胶水使组件顶部对齐
+        JSPHunterPanel.add(Box.createVerticalGlue());
     }
 
     /**

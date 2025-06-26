@@ -35,40 +35,73 @@ public class HowThisWork {
      */
     private void $$$setupUI$$$() {
         workPanel = new JPanel();
-        workPanel.setLayout(new GridLayoutManager(6, 1, new Insets(0, 0, 0, 0), -1, -1));
+        // 使用 GridBagLayout 替代 GridLayoutManager
+        workPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 15, 8, 15); // 上下间距8px，左右间距15px
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0; // 水平填充
+
         Font workPanelFont = this.$$$getFont$$$("Consolas", -1, 20, workPanel.getFont());
         if (workPanelFont != null) workPanel.setFont(workPanelFont);
-        workPanel.setBorder(BorderFactory.createTitledBorder(null, "steps", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        workPanel.setBorder(BorderFactory.createTitledBorder(null, "steps",
+                TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+
+        // 标签1
         firstLabel = new JLabel();
         Font firstLabelFont = this.$$$getFont$$$("Consolas", -1, 20, firstLabel.getFont());
         if (firstLabelFont != null) firstLabel.setFont(firstLabelFont);
         firstLabel.setText("1. 获取输入的 Jsp 文件或列表,并将其一个个编译为 .java 文件 (通过原生的依赖来编译,而非模版)");
-        workPanel.add(firstLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        workPanel.add(firstLabel, gbc);
+
+        // 标签2
         secondLabel = new JLabel();
         Font secondLabelFont = this.$$$getFont$$$("Consolas", -1, 20, secondLabel.getFont());
         if (secondLabelFont != null) secondLabel.setFont(secondLabelFont);
         secondLabel.setText("2. 使用 ASM 库获取每个 .java 文件中 _jspService 函数所使用的所有函数和类");
-        workPanel.add(secondLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
+        gbc.gridy = 1;
+        workPanel.add(secondLabel, gbc);
+
+        // 标签3
         thirdLabel = new JLabel();
         Font thirdLabelFont = this.$$$getFont$$$("Consolas", -1, 20, thirdLabel.getFont());
         if (thirdLabelFont != null) thirdLabel.setFont(thirdLabelFont);
         thirdLabel.setText("3. 在每个方法中查找所有方法调用");
-        workPanel.add(thirdLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
+        gbc.gridy = 2;
+        workPanel.add(thirdLabel, gbc);
+
+        // 标签4
         fourthLabel = new JLabel();
         Font fourthLabelFont = this.$$$getFont$$$("Consolas", -1, 20, fourthLabel.getFont());
         if (fourthLabelFont != null) fourthLabel.setFont(fourthLabelFont);
         fourthLabel.setText("4. 拓扑排序方法,得知调用顺序");
-        workPanel.add(fourthLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
+        gbc.gridy = 3;
+        workPanel.add(fourthLabel, gbc);
+
+        // 标签5
         fifthLabel = new JLabel();
         Font fifthLabelFont = this.$$$getFont$$$("Consolas", -1, 20, fifthLabel.getFont());
         if (fifthLabelFont != null) fifthLabel.setFont(fifthLabelFont);
         fifthLabel.setText("5. 在方法调用之间获取参数污点,主要是通过外部源入手,将外部源会用到的函数进行匹配并将其作为 source");
-        workPanel.add(fifthLabel, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
+        gbc.gridy = 4;
+        workPanel.add(fifthLabel, gbc);
+
+        // 标签6
         sixthLabel = new JLabel();
         Font sixthLabelFont = this.$$$getFont$$$("Consolas", -1, 20, sixthLabel.getFont());
         if (sixthLabelFont != null) sixthLabel.setFont(sixthLabelFont);
         sixthLabel.setText("6. 通过模拟栈帧的方式来模拟函数执行过程,如果定义的 source 流入了恶意函数中,则有理由怀疑其为恶意 JSP Webshell");
-        workPanel.add(sixthLabel, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 1, false));
+        gbc.gridy = 5;
+        workPanel.add(sixthLabel, gbc);
+
+        // 添加垂直弹性空间使标签靠上显示
+        gbc.gridy = 6;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        workPanel.add(Box.createGlue(), gbc);
     }
 
     /**

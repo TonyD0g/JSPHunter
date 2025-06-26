@@ -33,29 +33,45 @@ public class helpPlate {
      */
     private void $$$setupUI$$$() {
         helpPlate = new JPanel();
-        helpPlate.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
+        // 使用 GridBagLayout 替代 GridLayoutManager
+        helpPlate.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 15, 10, 15);  // 增加组件间距
+        gbc.anchor = GridBagConstraints.WEST;      // 左对齐
+        gbc.fill = GridBagConstraints.HORIZONTAL; // 水平填充
+
+        // 标签1
         firstLabel = new JLabel();
         Font firstLabelFont = this.$$$getFont$$$("Consolas", -1, 20, firstLabel.getFont());
         if (firstLabelFont != null) firstLabel.setFont(firstLabelFont);
-        firstLabel.setText("1.左侧Input模块上方输入可能存在Webshell的Tomcat扫描路径，比如:D:\\phpstudy_pro\\Extensions\\apache-tomcat-8.5.81\\webapps\\ROOT");
-        helpPlate.add(firstLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final Spacer spacer1 = new Spacer();
-        helpPlate.add(spacer1, new GridConstraints(0, 1, 4, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        firstLabel.setText("1.Input模块上方输入可能存在Webshell的Tomcat扫描路径，比如:D:\\phpstudy_pro\\Extensions\\apache-tomcat-8.5.81\\webapps\\ROOT");
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        helpPlate.add(firstLabel, gbc);
+
+        // 标签2
         secendLabel = new JLabel();
         Font secendLabelFont = this.$$$getFont$$$("Consolas", -1, 20, secendLabel.getFont());
         if (secendLabelFont != null) secendLabel.setFont(secendLabelFont);
-        secendLabel.setText("2.左侧Input模块下方输入Tomcat的依赖包,比如: D:\\phpstudy_pro\\Extensions\\apache-tomcat-8.5.81\\lib");
-        helpPlate.add(secendLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        secendLabel.setText("2.Input模块下方输入Tomcat的依赖包,比如: D:\\phpstudy_pro\\Extensions\\apache-tomcat-8.5.81\\lib");
+        gbc.gridy = 1;
+        helpPlate.add(secendLabel, gbc);
+
+        // 标签3
         thirdLabel = new JLabel();
         Font thirdLabelFont = this.$$$getFont$$$("Consolas", -1, 20, thirdLabel.getFont());
         if (thirdLabelFont != null) thirdLabel.setFont(thirdLabelFont);
         thirdLabel.setText("3.中间的Config模块,可以自定义配置（可选项）");
-        helpPlate.add(thirdLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        gbc.gridy = 2;
+        helpPlate.add(thirdLabel, gbc);
+
+        // 标签4
         fourLabel = new JLabel();
         Font fourLabelFont = this.$$$getFont$$$("Consolas", -1, 20, fourLabel.getFont());
         if (fourLabelFont != null) fourLabel.setFont(fourLabelFont);
-        fourLabel.setText("4.右侧Output模块点击 \"StartScan\" 开始扫描");
-        helpPlate.add(fourLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        fourLabel.setText("4.Output模块点击 \"StartScan\" 开始扫描");
+        gbc.gridy = 3;
+        helpPlate.add(fourLabel, gbc);
     }
 
     /**

@@ -1,0 +1,27 @@
+# 编译生成的文件
+target/
+*.class
+
+# IDE 相关文件
+.idea/
+*.iml
+
+# 日志文件
+*.log
+
+# 临时文件
+*.tmp
+
+# 操作系统产生的文件
+*.DS_Store
+
+# 临时文件
+temp/
+
+# 扫描输出html
+out/
+
+# jar 数据库
+jarDatabaseList/
+
+*.jar

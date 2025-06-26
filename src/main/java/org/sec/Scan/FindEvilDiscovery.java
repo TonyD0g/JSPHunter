@@ -15,6 +15,8 @@ import org.sec.Scan.JVMMethodScan.InvokeVirtual;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 寻找有没有 request 请求能控制的值可以流入恶意方法的，如 Runtime.exec ， ProcessBuilder
@@ -244,12 +246,39 @@ public class FindEvilDiscovery {
                         for (String evilType : evilMethodDataflow.keySet()) {
                             Set<Integer> taints = new HashSet<>();
                             Set<Integer> evilMethodDataflowArgList = evilMethodDataflow.get(evilType);
+                            Set<Integer> tmpTaints;
                             if (evilMethodDataflowArgList != null && !evilMethodDataflowArgList.isEmpty()) {
-                                for (Integer evilMethodDataflowArg : evilMethodDataflowArgList) {
-                                    //表示argTaint.get(new Integer(evilMethodDataflowArg))里的那个值对应的参数能污染到危险方法
-                                    Set<Integer> tmpTaints = argTaint.get(evilMethodDataflowArg);
-                                    taints.addAll(tmpTaints);
+                                evilMethodDataflowArgList = evilMethodDataflow.get(evilType);
+                                if (!(evilMethodDataflowArgList != null && !evilMethodDataflowArgList.isEmpty())) continue;
+
+                                for (Object evilMethodDataflowArg : evilMethodDataflowArgList) {
+                                    String original = evilMethodDataflowArg.toString();
+                                    String evilMethodDataflowArgHandle = evilMethodDataflowArg.toString().replace("instruction", ""); // todo 优先级低 为了防止潜在的bug ,instruction 应该被修改为不可重复的,如: instructionDSFAHJDSALD
+                                    boolean isReplaceStr = !original.equals(evilMethodDataflowArgHandle);
+
+                                    if (isReplaceStr) { // 如果成功替换了,则说明是 instruction 开头的
+                                        Matcher matcher = Pattern.compile(".*\\d.*").matcher(evilMethodDataflowArgHandle);
+                                        if (!matcher.matches()) evilMethodDataflowArgHandle = "100"; // 以下是同样的问题
+
+                                        //表示 argTaint.get(new Integer(evilMethodDataflowArg)) 里的哪个值对应的参数能污染到危险方法
+                                        if (argTaint.size() <= Integer.parseInt(evilMethodDataflowArgHandle)) {
+                                            int Difference = (Integer.parseInt(evilMethodDataflowArgHandle) - argTaint.size()) + 1;
+                                            while (Difference > 0) {
+                                                Set<Integer> newSet = new HashSet<>();
+                                                newSet.add(100); // todo 处理的较为简单粗暴,未来可能存在 bug, 解决思路: 当存在较大数字时,则说明这个数字是人为创建的
+                                                argTaint.add(newSet);
+                                                Difference--;
+                                            }
+                                        }
+                                        tmpTaints = argTaint.get(Integer.parseInt(evilMethodDataflowArgHandle));
+                                        taints.addAll(tmpTaints);
+                                    }
+
+                                    // todo 优先级高 当 evilMethodDataflowArgHandle 是 字符串时(但又不是 instruction 开头的),则需要进一步处理,否则程序会报错
+                                    // 暂不知道如何处理,需要深入调试
                                 }
+
+                                toEvilTaint.put(evilType, taints);
                             }
                             toEvilTaint.put(evilType, taints);
                         }

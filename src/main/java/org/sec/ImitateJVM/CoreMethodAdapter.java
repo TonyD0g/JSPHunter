@@ -9,6 +9,7 @@ import org.sec.Scan.getAllString;
 import org.sec.Utils.FileUtils;
 import org.sec.Utils.stringUtils;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -861,7 +862,7 @@ public class CoreMethodAdapter<T> extends MethodVisitor {
                 }
 
                 // 黑名单匹配 污点源
-                Constant.stainSourceLines = FileUtils.readLines(".\\stainSource.txt", String.valueOf(StandardCharsets.UTF_8));
+                Constant.stainSourceLines = FileUtils.readLines("." + File.separator + "stainSource.txt", String.valueOf(StandardCharsets.UTF_8));
                 for (String line : Constant.stainSourceLines) {
                     // 按\t进行切割
                     String[] finalPassthrough = stringUtils.splitBySymbol(line, "\t");
