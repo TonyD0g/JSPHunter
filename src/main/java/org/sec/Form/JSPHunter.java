@@ -6,7 +6,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import org.sec.ImitateJVM.Constant;
 import org.sec.ImitateJVM.DebugOption;
-import org.sec.Start.Application;
+import org.sec.start.Application;
 import org.sec.Utils.FileUtils;
 import org.sec.Utils.stringUtils;
 

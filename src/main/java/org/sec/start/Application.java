@@ -1,4 +1,4 @@
-package org.sec.Start;
+package org.sec.start;
 
 import org.sec.Form.JSPHunter;
 import org.sec.ImitateJVM.Constant;
